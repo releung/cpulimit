@@ -240,7 +240,7 @@ static void limit_process(pid_t pid, double limit, int include_children)
 		/* estimate how much the controlled processes are using the cpu in the working interval */
 		for (node = pgroup.proclist->first; node != NULL; node = node->next)
 		{
-			struct process *proc = (struct process *)(node->data);
+			const struct process *proc = (const struct process *)(node->data);
 			if (proc->cpu_usage < 0)
 			{
 				continue;
@@ -328,7 +328,7 @@ static void limit_process(pid_t pid, double limit, int include_children)
 	{
 		for (node = pgroup.proclist->first; node != NULL; node = node->next)
 		{
-			struct process *p = (struct process *)(node->data);
+			const struct process *p = (const struct process *)(node->data);
 			kill(p->pid, SIGCONT);
 		}
 	}

@@ -201,7 +201,7 @@ static void test_process_group_single(int include_children)
 		update_process_group(&pgroup);
 		for (node = pgroup.proclist->first; node != NULL; node = node->next)
 		{
-			struct process *p = (struct process *)(node->data);
+			const struct process *p = (const struct process *)(node->data);
 			assert(p->pid == child);
 			assert(p->ppid == getpid());
 			assert(p->cpu_usage <= 1.2);
