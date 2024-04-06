@@ -135,16 +135,16 @@ static void increase_priority(void)
 	/* find the best available nice value */
 	int old_priority, priority;
 	old_priority = getpriority(PRIO_PROCESS, 0);
-	setpriority(PRIO_PROCESS, 0, MAX_PRIORITY);
-	priority = getpriority(PRIO_PROCESS, 0);
-	while (priority > MAX_PRIORITY && setpriority(PRIO_PROCESS, 0, priority - 1) == 0)
+	for (priority = MAX_PRIORITY; priority < old_priority; priority++)
 	{
-		priority--;
+		if (setpriority(PRIO_PROCESS, 0, priority) == 0 &&
+			getpriority(PRIO_PROCESS, 0) == priority)
+			break;
 	}
-	if (priority != old_priority)
+	if (priority < old_priority)
 	{
 		if (verbose)
-			printf("Priority changed to %d\n", priority);
+			printf("Priority changed to %d.\n", priority);
 	}
 	else if (priority > MAX_PRIORITY)
 	{
