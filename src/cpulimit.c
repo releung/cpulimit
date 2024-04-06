@@ -36,7 +36,6 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 #include <sys/wait.h>
-#include <libgen.h>
 
 #include "process_group.h"
 #include "list.h"
@@ -52,6 +51,13 @@
 #ifndef MAX
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
+
+static char *__basename(char *path)
+{
+	char *p = strrchr(path, '/');
+	return p != NULL ? p + 1 : path;
+}
+#define basename(path) __basename(path)
 
 /* inline void nsec2timespec(double nsec, struct timespec *t); */
 #define nsec2timespec(nsec, t)                             \
