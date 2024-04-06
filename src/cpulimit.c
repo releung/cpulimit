@@ -69,11 +69,9 @@ static char *__basename(char *path)
 
 /* inline int sleep_timespec(struct timespec *t); */
 #if defined(__linux__) && defined(CLOCK_TAI)
-#define sleep_timespec(t) \
-	(clock_nanosleep(CLOCK_TAI, 0, (t), NULL))
+#define sleep_timespec(t) clock_nanosleep(CLOCK_TAI, 0, (t), NULL)
 #else
-#define sleep_timespec(t) \
-	(nanosleep((t), NULL))
+#define sleep_timespec(t) nanosleep((t), NULL)
 #endif
 
 #ifndef EPSILON

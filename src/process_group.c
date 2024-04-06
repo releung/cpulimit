@@ -33,11 +33,9 @@
 
 #if defined(__linux__)
 #if defined(CLOCK_TAI)
-#define get_time(ts) \
-	(clock_gettime(CLOCK_TAI, (ts)))
+#define get_time(ts) clock_gettime(CLOCK_TAI, (ts))
 #elif defined(CLOCK_MONOTONIC)
-#define get_time(ts) \
-	(clock_gettime(CLOCK_MONOTONIC, (ts)))
+#define get_time(ts) clock_gettime(CLOCK_MONOTONIC, (ts))
 #endif
 #endif
 #ifndef get_time
