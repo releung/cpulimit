@@ -42,7 +42,7 @@ static int unique_nonzero_pids(pid_t *arr_in, int len_in, pid_t *arr_out)
 		return -1;
 	if (arr_in == arr_out)
 	{
-		source = malloc(sizeof(pid_t) * len_in);
+		source = (pid_t *)malloc(sizeof(pid_t) * len_in);
 		if (source == NULL)
 		{
 			exit(-1);
@@ -80,7 +80,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
 		return -1;
 	}
 	/* Allocate and populate it->pidlist */
-	if ((it->pidlist = malloc((it->count) * sizeof(pid_t))) == NULL)
+	if ((it->pidlist = (pid_t *)malloc((it->count) * sizeof(pid_t))) == NULL)
 	{
 		fprintf(stderr, "malloc: %s\n", strerror(errno));
 		exit(-1);

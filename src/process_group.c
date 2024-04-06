@@ -141,7 +141,7 @@ int init_process_group(struct process_group *pgroup, pid_t target_pid, int inclu
 	memset(&pgroup->proctable, 0, sizeof(pgroup->proctable));
 	pgroup->target_pid = target_pid;
 	pgroup->include_children = include_children;
-	pgroup->proclist = malloc(sizeof(struct list));
+	pgroup->proclist = (struct list *)malloc(sizeof(struct list));
 	if (pgroup->proclist == NULL)
 	{
 		exit(-1);
@@ -209,12 +209,12 @@ void update_process_group(struct process_group *pgroup)
 		if (pgroup->proctable[hashkey] == NULL)
 		{
 			/* empty bucket */
-			struct process *new_process = malloc(sizeof(struct process));
+			struct process *new_process = (struct process *)malloc(sizeof(struct process));
 			if (new_process == NULL)
 			{
 				exit(-1);
 			}
-			pgroup->proctable[hashkey] = malloc(sizeof(struct list));
+			pgroup->proctable[hashkey] = (struct list *)malloc(sizeof(struct list));
 			if (pgroup->proctable[hashkey] == NULL)
 			{
 				exit(-1);
@@ -232,7 +232,7 @@ void update_process_group(struct process_group *pgroup)
 			if (p == NULL)
 			{
 				/* process is new. add it */
-				struct process *new_process = malloc(sizeof(struct process));
+				struct process *new_process = (struct process *)malloc(sizeof(struct process));
 				if (new_process == NULL)
 				{
 					exit(-1);
