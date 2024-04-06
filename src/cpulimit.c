@@ -40,10 +40,6 @@
 #include "process_group.h"
 #include "list.h"
 
-#ifndef __GNUC__
-#define __attribute__(attr)
-#endif
-
 /* some useful macro */
 #ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -108,9 +104,17 @@ int lazy = 0;
 volatile sig_atomic_t quit_flag = 0;
 
 /* SIGINT and SIGTERM signal handler */
-static void quit(int sig __attribute__((unused)))
+static void sig_handler(int sig)
 {
-	quit_flag = 1;
+	switch (sig)
+	{
+	case SIGINT:
+	case SIGTERM:
+		quit_flag = 1;
+		break;
+	default:
+		break;
+	}
 }
 
 static void print_usage(FILE *stream, int exit_code)
@@ -468,7 +472,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* all arguments are ok! */
-	sa.sa_handler = quit;
+	sa.sa_handler = sig_handler;
 	sa.sa_flags = 0;
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGINT, &sa, NULL);
