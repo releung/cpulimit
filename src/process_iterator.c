@@ -19,12 +19,6 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include "process_iterator.h"
-
 /* See this link to port to other systems: http://www.steve.org.uk/Reference/Unix/faq_8.html#SEC85 */
 
 #if defined(__linux__)

@@ -19,6 +19,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <sys/time.h>
@@ -31,11 +35,13 @@
 #include "process_group.h"
 #include "list.h"
 
-#if defined(__linux__)
+#ifndef get_time
+#if _POSIX_TIMERS > 0
 #if defined(CLOCK_TAI)
 #define get_time(ts) clock_gettime(CLOCK_TAI, (ts))
 #elif defined(CLOCK_MONOTONIC)
 #define get_time(ts) clock_gettime(CLOCK_MONOTONIC, (ts))
+#endif
 #endif
 #endif
 #ifndef get_time
@@ -53,12 +59,14 @@ static int __get_time(struct timespec *ts)
 #define get_time(ts) __get_time(ts)
 #endif
 
+#ifndef basename
 static char *__basename(char *path)
 {
 	char *p = strrchr(path, '/');
 	return p != NULL ? p + 1 : path;
 }
 #define basename(path) __basename(path)
+#endif
 
 /* look for a process by pid
 search_pid   : pid of the wanted process

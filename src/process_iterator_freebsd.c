@@ -24,11 +24,13 @@
 #ifndef __PROCESS_ITERATOR_FREEBSD_C
 #define __PROCESS_ITERATOR_FREEBSD_C
 
+#include "process_iterator.h"
 #include <sys/sysctl.h>
 #include <sys/user.h>
 #include <fcntl.h>
+#include <kvm.h>
+#include <sys/param.h>
 #include <paths.h>
-#include <string.h>
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
 {

@@ -27,6 +27,10 @@
  *
  */
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -48,26 +52,32 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
+#ifndef basename
 static char *__basename(char *path)
 {
 	char *p = strrchr(path, '/');
 	return p != NULL ? p + 1 : path;
 }
 #define basename(path) __basename(path)
+#endif
 
 /* inline void nsec2timespec(double nsec, struct timespec *t); */
+#ifndef nsec2timespec
 #define nsec2timespec(nsec, t)                             \
 	do                                                     \
 	{                                                      \
 		(t)->tv_sec = (time_t)((nsec) / 1e9);              \
 		(t)->tv_nsec = (long)((nsec) - (t)->tv_sec * 1e9); \
 	} while (0)
+#endif
 
 /* inline int sleep_timespec(struct timespec *t); */
-#if defined(__linux__) && defined(CLOCK_TAI)
+#ifndef sleep_timespec
+#if defined(__linux__) && _POSIX_C_SOURCE >= 200112L && defined(CLOCK_TAI)
 #define sleep_timespec(t) clock_nanosleep(CLOCK_TAI, 0, (t), NULL)
 #else
 #define sleep_timespec(t) nanosleep((t), NULL)
+#endif
 #endif
 
 #ifndef EPSILON

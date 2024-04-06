@@ -26,7 +26,7 @@
 
 #include <sys/vfs.h>
 #include <linux/magic.h>
-#include <string.h>
+#include "process_iterator.h"
 
 static int check_proc(void)
 {

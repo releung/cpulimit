@@ -20,10 +20,13 @@
  */
 
 #ifndef __PROCESS_ITERATOR_H
-
 #define __PROCESS_ITERATOR_H
 
 #include <sys/types.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include <unistd.h>
 #include <limits.h>
 #if defined(__linux__)

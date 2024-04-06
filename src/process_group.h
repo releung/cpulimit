@@ -20,8 +20,11 @@
  */
 
 #ifndef __PROCESS_GROUP_H
-
 #define __PROCESS_GROUP_H
+
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
 
 #include <time.h>
 #include <string.h>

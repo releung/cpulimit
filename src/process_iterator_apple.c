@@ -28,10 +28,8 @@
 #define __PROCESS_ITERATOR_APPLE_C
 
 #include <errno.h>
-#include <stdio.h>
 #include <libproc.h>
-#include <string.h>
-#include <stdlib.h>
+#include "process_iterator.h"
 
 static int unique_nonzero_pids(pid_t *arr_in, int len_in, pid_t *arr_out)
 {

@@ -19,6 +19,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -53,18 +57,22 @@ static void increase_priority(void)
 }
 
 /* inline int sleep_timespec(struct timespec *t); */
-#if defined(__linux__) && defined(CLOCK_TAI)
+#ifndef sleep_timespec
+#if defined(__linux__) && _POSIX_C_SOURCE >= 200112L && defined(CLOCK_TAI)
 #define sleep_timespec(t) clock_nanosleep(CLOCK_TAI, 0, (t), NULL)
 #else
 #define sleep_timespec(t) nanosleep((t), NULL)
 #endif
+#endif
 
+#ifndef basename
 static char *__basename(char *path)
 {
 	char *p = strrchr(path, '/');
 	return p != NULL ? p + 1 : path;
 }
 #define basename(path) __basename(path)
+#endif
 
 static void ignore_signal(int sig __attribute__((unused)))
 {
