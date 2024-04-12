@@ -58,7 +58,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
 static int read_process_info(pid_t pid, struct process *p)
 {
 	char statfile[32], exefile[32], state;
-	unsigned long utime, stime;
+	double utime, stime;
 	long ppid;
 	FILE *fd;
 	int ret = 0;
@@ -93,7 +93,7 @@ static int read_process_info(pid_t pid, struct process *p)
 	sprintf(statfile, "/proc/%ld/stat", (long)p->pid);
 	if ((fd = fopen(statfile, "r")) != NULL)
 	{
-		if (fscanf(fd, "%*d (%*[^)]) %c %ld %*d %*d %*d %*d %*d %*d %*d %*d %*d %lu %lu",
+		if (fscanf(fd, "%*d (%*[^)]) %c %ld %*d %*d %*d %*d %*d %*d %*d %*d %*d %lf %lf",
 				   &state, &ppid, &utime, &stime) != 4 ||
 			strchr("ZXx", state) != NULL)
 		{
@@ -102,7 +102,7 @@ static int read_process_info(pid_t pid, struct process *p)
 		else
 		{
 			p->ppid = (pid_t)ppid;
-			p->cputime = utime * 1000.0 / HZ + stime * 1000.0 / HZ;
+			p->cputime = (utime + stime) * 1000.0 / HZ;
 		}
 		fclose(fd);
 	}
