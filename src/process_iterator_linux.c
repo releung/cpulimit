@@ -31,6 +31,7 @@
 #include <sys/vfs.h>
 #include <linux/magic.h>
 #include "process_iterator.h"
+#include <errno.h>
 
 static int check_proc(void)
 {
@@ -168,13 +169,14 @@ int get_next_process(struct process_iterator *it, struct process *p)
 	/* read in from /proc and seek for process dirs */
 	while ((dit = readdir(it->dip)) != NULL)
 	{
+		char *ptr;
 #ifdef _DIRENT_HAVE_D_TYPE
 		if (dit->d_type != DT_DIR)
 			continue;
 #endif
-		if (strtok(dit->d_name, "0123456789") != NULL)
+		p->pid = (pid_t)strtol(dit->d_name, &ptr, 10);
+		if (p->pid <= 0 || *ptr != '\0' || errno == ERANGE)
 			continue;
-		p->pid = (pid_t)atol(dit->d_name);
 		if (it->filter->pid != 0 &&
 			it->filter->pid != p->pid &&
 			!is_child_of(p->pid, it->filter->pid))
