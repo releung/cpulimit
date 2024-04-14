@@ -24,6 +24,10 @@
 #ifndef __PROCESS_ITERATOR_LINUX_C
 #define __PROCESS_ITERATOR_LINUX_C
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <sys/vfs.h>
 #include <linux/magic.h>
 #include "process_iterator.h"
@@ -164,6 +168,10 @@ int get_next_process(struct process_iterator *it, struct process *p)
 	/* read in from /proc and seek for process dirs */
 	while ((dit = readdir(it->dip)) != NULL)
 	{
+#ifdef _DIRENT_HAVE_D_TYPE
+		if (dit->d_type != DT_DIR)
+			continue;
+#endif
 		if (strtok(dit->d_name, "0123456789") != NULL)
 			continue;
 		p->pid = (pid_t)atol(dit->d_name);
