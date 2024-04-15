@@ -31,6 +31,7 @@
 #include <sys/vfs.h>
 #include <linux/magic.h>
 #include "process_iterator.h"
+#include <sys/stat.h>
 #include <errno.h>
 
 static int check_proc(void)
@@ -136,15 +137,37 @@ pid_t getppid_of(pid_t pid)
 	return (pid_t)ppid;
 }
 
+static time_t get_start_time(pid_t pid)
+{
+	struct stat procfs_stat;
+	char procfs_path[32];
+	sprintf(procfs_path, "/proc/%ld", (long)pid);
+	if (stat(procfs_path, &procfs_stat) == 0)
+		return procfs_stat.st_ctime;
+	return (time_t)-1;
+}
+
 int is_child_of(pid_t child_pid, pid_t parent_pid)
 {
-	if (child_pid <= 0 || parent_pid <= 0 || child_pid == parent_pid)
+	time_t child_start_time, parent_start_time;
+	if (child_pid <= 1 || parent_pid <= 0 || child_pid == parent_pid)
 		return 0;
-	while (child_pid > 1 && child_pid != parent_pid)
+	if (parent_pid == 1)
+		return 1;
+	parent_start_time = get_start_time(parent_pid);
+	while (child_pid > 1)
 	{
+		if (parent_start_time >= 0)
+		{
+			child_start_time = get_start_time(child_pid);
+			if (child_start_time >= 0 && child_start_time < parent_start_time)
+				return 0;
+		}
 		child_pid = getppid_of(child_pid);
+		if (child_pid == parent_pid)
+			return 1;
 	}
-	return child_pid == parent_pid;
+	return 0;
 }
 
 int get_next_process(struct process_iterator *it, struct process *p)
