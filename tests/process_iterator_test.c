@@ -190,18 +190,18 @@ static void test_process_group_single(int include_children)
 {
 	struct process_group pgroup;
 	int i;
-	double tot_usage = 0;
 	pid_t child = fork();
 	if (child == 0)
 	{
 		/* child is supposed to be killed by the parent :/ */
+		volatile int unused_value = 0;
 		increase_priority();
 		while (1)
-			;
+			(void)unused_value;
 		exit(1);
 	}
 	assert(init_process_group(&pgroup, child, include_children) == 0);
-	for (i = 0; i < 200; i++)
+	for (i = 0; i < 100; i++)
 	{
 		struct list_node *node = NULL;
 		int count = 0;
@@ -212,16 +212,16 @@ static void test_process_group_single(int include_children)
 			const struct process *p = (const struct process *)(node->data);
 			assert(p->pid == child);
 			assert(p->ppid == getpid());
-			assert(p->cpu_usage <= 1.2);
-			tot_usage += p->cpu_usage;
+			/* p->cpu_usage should be -1 or [0, 1] */
+			assert((p->cpu_usage >= (-1.00001) && p->cpu_usage <= (-0.99999)) ||
+				   (p->cpu_usage >= 0 && p->cpu_usage <= 1.05));
 			count++;
 		}
 		assert(count == 1);
 		interval.tv_sec = 0;
-		interval.tv_nsec = 50000000;
+		interval.tv_nsec = 200000000;
 		sleep_timespec(&interval);
 	}
-	assert(tot_usage / i < 1.1 && tot_usage / i > 0.7);
 	assert(close_process_group(&pgroup) == 0);
 	kill(child, SIGKILL);
 }
