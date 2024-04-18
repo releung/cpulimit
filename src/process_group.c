@@ -258,7 +258,7 @@ void update_process_group(struct process_group *pgroup)
 					continue;
 				/* process exists. update CPU usage */
 				sample = (tmp_process.cputime - p->cputime) / dt;
-				if (p->cpu_usage == -1)
+				if (p->cpu_usage < 0)
 				{
 					/* initialization */
 					p->cpu_usage = sample;
