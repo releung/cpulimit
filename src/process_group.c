@@ -189,7 +189,7 @@ int close_process_group(struct process_group *pgroup)
 	(((t1)->tv_sec - (t2)->tv_sec) * 1e3 + ((t1)->tv_nsec - (t2)->tv_nsec) / 1e6)
 
 /* parameter in range 0-1 */
-#define ALFA 0.08
+#define ALPHA 0.08
 #define MIN_DT 20
 
 void update_process_group(struct process_group *pgroup)
@@ -266,7 +266,7 @@ void update_process_group(struct process_group *pgroup)
 				else
 				{
 					/* usage adjustment */
-					p->cpu_usage = (1.0 - ALFA) * p->cpu_usage + ALFA * sample;
+					p->cpu_usage = (1.0 - ALPHA) * p->cpu_usage + ALPHA * sample;
 				}
 				p->cputime = tmp_process.cputime;
 			}
