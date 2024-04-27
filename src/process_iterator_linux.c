@@ -34,6 +34,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <ctype.h>
+#include <time.h>
 
 static int check_proc(void)
 {
@@ -138,30 +139,39 @@ pid_t getppid_of(pid_t pid)
 	return (pid_t)ppid;
 }
 
-static time_t get_start_time(pid_t pid)
+static int get_start_time(pid_t pid, struct timespec *start_time)
 {
 	struct stat procfs_stat;
 	char procfs_path[32];
+	int ret;
 	sprintf(procfs_path, "/proc/%ld", (long)pid);
-	if (stat(procfs_path, &procfs_stat) == 0)
-		return procfs_stat.st_ctime;
-	return (time_t)-1;
+	ret = stat(procfs_path, &procfs_stat);
+	if (ret == 0 && start_time != NULL)
+		*start_time = procfs_stat.st_ctim;
+	return ret;
+}
+
+static int earlier_than(const struct timespec *t1, const struct timespec *t2)
+{
+	return t1->tv_sec < t2->tv_sec ||
+		   (t1->tv_sec == t2->tv_sec && t1->tv_nsec < t2->tv_nsec);
 }
 
 int is_child_of(pid_t child_pid, pid_t parent_pid)
 {
-	time_t child_start_time, parent_start_time;
+	int ret_child, ret_parent;
+	struct timespec child_start_time, parent_start_time;
 	if (child_pid <= 1 || parent_pid <= 0 || child_pid == parent_pid)
 		return 0;
 	if (parent_pid == 1)
 		return 1;
-	parent_start_time = get_start_time(parent_pid);
+	ret_parent = get_start_time(parent_pid, &parent_start_time);
 	while (child_pid > 1)
 	{
-		if (parent_start_time >= 0)
+		if (ret_parent == 0)
 		{
-			child_start_time = get_start_time(child_pid);
-			if (child_start_time >= 0 && child_start_time < parent_start_time)
+			ret_child = get_start_time(child_pid, &child_start_time);
+			if (ret_child == 0 && earlier_than(&child_start_time, &parent_start_time))
 				return 0;
 		}
 		child_pid = getppid_of(child_pid);
