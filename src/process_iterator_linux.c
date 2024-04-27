@@ -110,7 +110,7 @@ static int read_process_info(pid_t pid, struct process *p)
 		else
 		{
 			p->ppid = (pid_t)ppid;
-			p->cputime = (utime + stime) * 1000.0 / HZ;
+			p->cputime = (utime + stime) * 1000 / sysconf(_SC_CLK_TCK);
 		}
 		fclose(fd);
 	}
