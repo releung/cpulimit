@@ -101,13 +101,14 @@ static void pti2proc(struct proc_taskallinfo *ti, struct process *process)
 	if (ti->pbsd.pbi_name[0] != '\0')
 	{
 		process->max_cmd_len = MIN(sizeof(process->command), sizeof(ti->pbsd.pbi_name)) - 1;
-		memcpy(process->command, ti->pbsd.pbi_name, process->max_cmd_len + 1);
+		strncpy(process->command, ti->pbsd.pbi_name, process->max_cmd_len);
 	}
 	else
 	{
 		process->max_cmd_len = MIN(sizeof(process->command), sizeof(ti->pbsd.pbi_comm)) - 1;
-		memcpy(process->command, ti->pbsd.pbi_comm, process->max_cmd_len + 1);
+		strncpy(process->command, ti->pbsd.pbi_comm, process->max_cmd_len);
 	}
+	process->command[process->max_cmd_len] = '\0';
 }
 
 static int get_process_pti(pid_t pid, struct proc_taskallinfo *ti)
