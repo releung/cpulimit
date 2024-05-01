@@ -1,6 +1,6 @@
 CC ?= gcc
 override CFLAGS := $(filter-out -std=% -ansi -W%,$(CFLAGS)) \
-			-D_GNU_SOURCE -std=gnu89 \
+			-std=c89 \
 			-Wall -Wextra -pedantic \
 			-Wmissing-prototypes -Wstrict-prototypes \
 			-Wold-style-definition
