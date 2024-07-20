@@ -70,6 +70,7 @@ static int read_process_info(pid_t pid, struct process *p)
 	long ppid;
 	FILE *fd;
 	int ret = 0;
+	static double sc_clk_tck = -1.0;
 
 	p->pid = pid;
 
@@ -110,7 +111,11 @@ static int read_process_info(pid_t pid, struct process *p)
 		else
 		{
 			p->ppid = (pid_t)ppid;
-			p->cputime = (utime + stime) * 1000 / sysconf(_SC_CLK_TCK);
+			if (sc_clk_tck < 0)
+			{
+				sc_clk_tck = (double)sysconf(_SC_CLK_TCK);
+			}
+			p->cputime = (utime + stime) * 1000.0 / sc_clk_tck;
 		}
 		fclose(fd);
 	}
