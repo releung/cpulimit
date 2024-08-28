@@ -34,39 +34,7 @@
 #include "process_iterator.h"
 #include "process_group.h"
 #include "list.h"
-
-#ifndef get_time
-#if _POSIX_TIMERS > 0
-#if defined(CLOCK_TAI)
-#define get_time(ts) clock_gettime(CLOCK_TAI, (ts))
-#elif defined(CLOCK_MONOTONIC)
-#define get_time(ts) clock_gettime(CLOCK_MONOTONIC, (ts))
-#endif
-#endif
-#endif
-#ifndef get_time
-static int __get_time(struct timespec *ts)
-{
-	struct timeval tv;
-	if (gettimeofday(&tv, NULL))
-	{
-		return -1;
-	}
-	ts->tv_sec = tv.tv_sec;
-	ts->tv_nsec = tv.tv_usec * 1000L;
-	return 0;
-}
-#define get_time(ts) __get_time(ts)
-#endif
-
-#ifndef basename
-static char *__basename(char *path)
-{
-	char *p = strrchr(path, '/');
-	return p != NULL ? p + 1 : path;
-}
-#define basename(path) __basename(path)
-#endif
+#include "util.h"
 
 /* look for a process by pid
 search_pid   : pid of the wanted process
@@ -182,11 +150,6 @@ int close_process_group(struct process_group *pgroup)
 	pgroup->proclist = NULL;
 	return 0;
 }
-
-/* returns t1-t2 in millisecond */
-/* static inline double timediff_in_ms(const struct timespec *t1, const struct timespec *t2) */
-#define timediff_in_ms(t1, t2) \
-	(((t1)->tv_sec - (t2)->tv_sec) * 1e3 + ((t1)->tv_nsec - (t2)->tv_nsec) / 1e6)
 
 /* parameter in range 0-1 */
 #define ALPHA 0.08

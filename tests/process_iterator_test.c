@@ -36,6 +36,7 @@
 
 #include "../src/process_iterator.h"
 #include "../src/process_group.h"
+#include "../src/util.h"
 
 #ifndef __GNUC__
 #define __attribute__(attr)
@@ -55,24 +56,6 @@ static void increase_priority(void)
 			break;
 	}
 }
-
-/* inline int sleep_timespec(struct timespec *t); */
-#ifndef sleep_timespec
-#if defined(__linux__) && _POSIX_C_SOURCE >= 200112L && defined(CLOCK_TAI)
-#define sleep_timespec(t) clock_nanosleep(CLOCK_TAI, 0, (t), NULL)
-#else
-#define sleep_timespec(t) nanosleep((t), NULL)
-#endif
-#endif
-
-#ifndef basename
-static char *__basename(char *path)
-{
-	char *p = strrchr(path, '/');
-	return p != NULL ? p + 1 : path;
-}
-#define basename(path) __basename(path)
-#endif
 
 static void ignore_signal(int sig __attribute__((unused)))
 {

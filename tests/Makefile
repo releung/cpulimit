@@ -7,7 +7,8 @@ override CFLAGS := $(filter-out -std=% -ansi -W%,$(CFLAGS)) \
 TARGETS = busy process_iterator_test
 SRC = ../src
 SYSLIBS ?= -lpthread
-LIBS := $(SRC)/list.c $(SRC)/process_iterator.c $(SRC)/process_group.c
+LIBS := $(SRC)/list.c $(SRC)/process_iterator.c \
+			$(SRC)/process_group.c $(SRC)/util.c
 
 UNAME ?= $(shell uname)
 ifeq ($(UNAME), FreeBSD)
