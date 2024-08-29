@@ -514,6 +514,7 @@ int main(int argc, char *argv[])
 			int ret = execvp(cmd, cmd_args);
 			/* if we are here there was an error, show it */
 			perror("Error");
+			free(cmd_args);
 			exit(ret);
 		}
 		else
