@@ -170,6 +170,22 @@ static pid_t get_pid_max(void)
 #endif
 }
 
+static double get_dynamic_time_slot(void)
+{
+	static double time_slot = TIME_SLOT;
+	static const double MIN_TIME_SLOT = TIME_SLOT,
+						MAX_TIME_SLOT = TIME_SLOT * 5;
+	double load, new_time_slot;
+	if (getloadavg(&load, 1) != 1)
+	{
+		return time_slot;
+	}
+	new_time_slot = time_slot * load / NCPU / 0.3;
+	new_time_slot = MIN(MAX(new_time_slot, MIN_TIME_SLOT), MAX_TIME_SLOT);
+	time_slot = time_slot * 0.95 + new_time_slot * 0.05;
+	return time_slot;
+}
+
 static void limit_process(pid_t pid, double limit, int include_children)
 {
 	/* slice of the slot in which the process is allowed to run */
@@ -202,6 +218,8 @@ static void limit_process(pid_t pid, double limit, int include_children)
 		double pcpu = -1;
 
 		double twork_total_nsec, tsleep_total_nsec;
+
+		double time_slot;
 
 		update_process_group(&pgroup);
 
@@ -239,10 +257,12 @@ static void limit_process(pid_t pid, double limit, int include_children)
 		}
 		workingrate = MAX(MIN(workingrate, 1 - EPSILON), EPSILON);
 
-		twork_total_nsec = (double)TIME_SLOT * 1000 * workingrate;
+		time_slot = get_dynamic_time_slot();
+
+		twork_total_nsec = time_slot * 1000 * workingrate;
 		nsec2timespec(twork_total_nsec, &twork);
 
-		tsleep_total_nsec = (double)TIME_SLOT * 1000 - twork_total_nsec;
+		tsleep_total_nsec = time_slot * 1000 - twork_total_nsec;
 		nsec2timespec(tsleep_total_nsec, &tsleep);
 
 		if (verbose)
