@@ -113,4 +113,11 @@ int __get_time(struct timespec *ts);
 	(((t1)->tv_sec - (t2)->tv_sec) * 1e3 + ((t1)->tv_nsec - (t2)->tv_nsec) / 1e6)
 #endif
 
+void increase_priority(void);
+
+/* Get the number of CPUs */
+int get_ncpu(void);
+
+pid_t get_pid_max(void);
+
 #endif

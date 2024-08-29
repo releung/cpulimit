@@ -42,21 +42,6 @@
 #define __attribute__(attr)
 #endif
 
-#define MAX_PRIORITY -20
-
-static void increase_priority(void)
-{
-	/* find the best available nice value */
-	int old_priority, priority;
-	old_priority = getpriority(PRIO_PROCESS, 0);
-	for (priority = MAX_PRIORITY; priority < old_priority; priority++)
-	{
-		if (setpriority(PRIO_PROCESS, 0, priority) == 0 &&
-			getpriority(PRIO_PROCESS, 0) == priority)
-			break;
-	}
-}
-
 static void ignore_signal(int sig __attribute__((unused)))
 {
 }

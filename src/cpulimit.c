@@ -38,7 +38,6 @@
 #include <string.h>
 #include <signal.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 #include <sys/wait.h>
 
 #include "process_group.h"
@@ -53,8 +52,6 @@
 /* each slot is splitted in a working slice and a sleeping slice */
 /* TODO: make it adaptive, based on the actual system load */
 #define TIME_SLOT 100000
-
-#define MAX_PRIORITY -20
 
 /* GLOBAL VARIABLES */
 
@@ -107,67 +104,6 @@ static void print_usage(FILE *stream, int exit_code)
 	fprintf(stream, "      COMMAND [ARGS]         run this command and limit it (implies -z)\n");
 	fprintf(stream, "\nReport bugs to <marlonx80@hotmail.com>.\n");
 	exit(exit_code);
-}
-
-static void increase_priority(void)
-{
-	/* find the best available nice value */
-	int old_priority, priority;
-	old_priority = getpriority(PRIO_PROCESS, 0);
-	for (priority = MAX_PRIORITY; priority < old_priority; priority++)
-	{
-		if (setpriority(PRIO_PROCESS, 0, priority) == 0 &&
-			getpriority(PRIO_PROCESS, 0) == priority)
-			break;
-	}
-	if (priority < old_priority)
-	{
-		if (verbose)
-			printf("Priority changed to %d.\n", priority);
-	}
-	else if (priority > MAX_PRIORITY)
-	{
-		if (verbose)
-			printf("Warning: Cannot change priority. Run as root or renice for best results.\n");
-	}
-}
-
-/* Get the number of CPUs */
-static int get_ncpu(void)
-{
-	int ncpu;
-#if defined(_SC_NPROCESSORS_ONLN)
-	ncpu = sysconf(_SC_NPROCESSORS_ONLN);
-#elif defined(__APPLE__)
-	int mib[2] = {CTL_HW, HW_NCPU};
-	size_t len = sizeof(ncpu);
-	sysctl(mib, 2, &ncpu, &len, NULL, 0);
-#elif defined(_GNU_SOURCE)
-	ncpu = get_nprocs();
-#else
-	ncpu = -1;
-#endif
-	return ncpu;
-}
-
-static pid_t get_pid_max(void)
-{
-#if defined(__linux__)
-	/* read /proc/sys/kernel/pid_max */
-	long pid_max = -1;
-	FILE *fd;
-	if ((fd = fopen("/proc/sys/kernel/pid_max", "r")) != NULL)
-	{
-		if (fscanf(fd, "%ld", &pid_max) != 1)
-			pid_max = -1;
-		fclose(fd);
-	}
-	return (pid_t)pid_max;
-#elif defined(__FreeBSD__)
-	return (pid_t)99999;
-#elif defined(__APPLE__)
-	return (pid_t)99998;
-#endif
 }
 
 static double get_dynamic_time_slot(void)

@@ -6,7 +6,7 @@ override CFLAGS := $(filter-out -std=% -ansi -W%,$(CFLAGS)) \
 			-Wold-style-definition
 TARGETS = busy process_iterator_test
 SRC = ../src
-SYSLIBS ?= -lpthread
+SYSLIBS ?= -lpthread $(SRC)/util.c
 LIBS := $(SRC)/list.c $(SRC)/process_iterator.c \
 			$(SRC)/process_group.c $(SRC)/util.c
 

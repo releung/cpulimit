@@ -4,47 +4,17 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include "../src/util.h"
 
 #ifndef __GNUC__
 #define __attribute__(attr)
 #endif
 
-#define MAX_PRIORITY -20
-
-static void increase_priority(void)
-{
-	/* find the best available nice value */
-	int priority;
-	setpriority(PRIO_PROCESS, 0, MAX_PRIORITY);
-	priority = getpriority(PRIO_PROCESS, 0);
-	while (priority > MAX_PRIORITY && setpriority(PRIO_PROCESS, 0, priority - 1) == 0)
-	{
-		priority--;
-	}
-}
-
-/* Get the number of CPUs */
-static int get_ncpu(void)
-{
-	int ncpu;
-#if defined(_SC_NPROCESSORS_ONLN)
-	ncpu = sysconf(_SC_NPROCESSORS_ONLN);
-#elif defined(__APPLE__)
-	int mib[2] = {CTL_HW, HW_NCPU};
-	size_t len = sizeof(ncpu);
-	sysctl(mib, 2, &ncpu, &len, NULL, 0);
-#elif defined(_GNU_SOURCE)
-	ncpu = get_nprocs();
-#else
-	ncpu = -1;
-#endif
-	return ncpu;
-}
-
 static void *loop(void *param __attribute__((unused)))
 {
+	volatile int unused_value = 0;
 	while (1)
-		;
+		(void)unused_value;
 	return NULL;
 }
 
