@@ -35,6 +35,7 @@
 #include "process_group.h"
 #include "list.h"
 #include "util.h"
+#include "process_table.h"
 
 /* look for a process by pid
 search_pid   : pid of the wanted process
@@ -114,7 +115,12 @@ pid_t find_process_by_name(char *process_name)
 int init_process_group(struct process_group *pgroup, pid_t target_pid, int include_children)
 {
 	/* hashtable initialization */
-	memset(&pgroup->proctable, 0, sizeof(pgroup->proctable));
+	pgroup->proctable = (struct process_table *)malloc(sizeof(struct process_table));
+	if (pgroup->proctable == NULL)
+	{
+		exit(-1);
+	}
+	process_table_init(pgroup->proctable, 2048);
 	pgroup->target_pid = target_pid;
 	pgroup->include_children = include_children;
 	pgroup->proclist = (struct list *)malloc(sizeof(struct list));
@@ -133,22 +139,23 @@ int init_process_group(struct process_group *pgroup, pid_t target_pid, int inclu
 
 int close_process_group(struct process_group *pgroup)
 {
-	int i;
-	int size = sizeof(pgroup->proctable) / sizeof(struct process *);
-	for (i = 0; i < size; i++)
-	{
-		if (pgroup->proctable[i] != NULL)
-		{
-			/* free() history for each process */
-			destroy_list(pgroup->proctable[i]);
-			free(pgroup->proctable[i]);
-			pgroup->proctable[i] = NULL;
-		}
-	}
 	clear_list(pgroup->proclist);
 	free(pgroup->proclist);
 	pgroup->proclist = NULL;
+	process_table_destroy(pgroup->proctable);
+	free(pgroup->proctable);
+	pgroup->proctable = NULL;
 	return 0;
+}
+
+static struct process *process_dup(struct process *proc)
+{
+	struct process *p = (struct process *)malloc(sizeof(struct process));
+	if (p == NULL)
+	{
+		exit(-1);
+	}
+	return memcpy(p, proc, sizeof(struct process));
 }
 
 /* parameter in range 0-1 */
@@ -158,7 +165,7 @@ int close_process_group(struct process_group *pgroup)
 void update_process_group(struct process_group *pgroup)
 {
 	struct process_iterator it;
-	struct process tmp_process;
+	struct process tmp_process, *p;
 	struct process_filter filter;
 	struct timespec now;
 	double dt;
@@ -176,63 +183,34 @@ void update_process_group(struct process_group *pgroup)
 
 	while (get_next_process(&it, &tmp_process) != -1)
 	{
-		int hashkey = pid_hashfn(tmp_process.pid);
-		if (pgroup->proctable[hashkey] == NULL)
+		p = process_table_find(pgroup->proctable, &tmp_process);
+		if (p == NULL)
 		{
-			/* empty bucket */
-			struct process *new_process = (struct process *)malloc(sizeof(struct process));
-			if (new_process == NULL)
-			{
-				exit(-1);
-			}
-			pgroup->proctable[hashkey] = (struct list *)malloc(sizeof(struct list));
-			if (pgroup->proctable[hashkey] == NULL)
-			{
-				exit(-1);
-			}
+			/* process is new. add it */
 			tmp_process.cpu_usage = -1;
-			memcpy(new_process, &tmp_process, sizeof(struct process));
-			init_list(pgroup->proctable[hashkey], sizeof(pid_t));
-			add_elem(pgroup->proctable[hashkey], new_process);
-			add_elem(pgroup->proclist, new_process);
+			p = process_dup(&tmp_process);
+			process_table_add(pgroup->proctable, p);
+			add_elem(pgroup->proclist, p);
 		}
 		else
 		{
-			/* existing bucket */
-			struct process *p = (struct process *)locate_elem(pgroup->proctable[hashkey], &tmp_process);
-			if (p == NULL)
+			double sample;
+			add_elem(pgroup->proclist, p);
+			if (dt < MIN_DT)
+				continue;
+			/* process exists. update CPU usage */
+			sample = (tmp_process.cputime - p->cputime) / dt;
+			if (p->cpu_usage < 0)
 			{
-				/* process is new. add it */
-				struct process *new_process = (struct process *)malloc(sizeof(struct process));
-				if (new_process == NULL)
-				{
-					exit(-1);
-				}
-				tmp_process.cpu_usage = -1;
-				memcpy(new_process, &tmp_process, sizeof(struct process));
-				add_elem(pgroup->proctable[hashkey], new_process);
-				add_elem(pgroup->proclist, new_process);
+				/* initialization */
+				p->cpu_usage = sample;
 			}
 			else
 			{
-				double sample;
-				add_elem(pgroup->proclist, p);
-				if (dt < MIN_DT)
-					continue;
-				/* process exists. update CPU usage */
-				sample = (tmp_process.cputime - p->cputime) / dt;
-				if (p->cpu_usage < 0)
-				{
-					/* initialization */
-					p->cpu_usage = sample;
-				}
-				else
-				{
-					/* usage adjustment */
-					p->cpu_usage = (1.0 - ALPHA) * p->cpu_usage + ALPHA * sample;
-				}
-				p->cputime = tmp_process.cputime;
+				/* usage adjustment */
+				p->cpu_usage = (1.0 - ALPHA) * p->cpu_usage + ALPHA * sample;
 			}
+			p->cputime = tmp_process.cputime;
 		}
 	}
 	close_process_iterator(&it);
@@ -243,13 +221,5 @@ void update_process_group(struct process_group *pgroup)
 
 int remove_process(struct process_group *pgroup, pid_t pid)
 {
-	int hashkey = pid_hashfn(pid);
-	struct list_node *node;
-	if (pgroup->proctable[hashkey] == NULL)
-		return 1; /* nothing to delete */
-	node = (struct list_node *)locate_node(pgroup->proctable[hashkey], &pid);
-	if (node == NULL)
-		return 2;
-	delete_node(pgroup->proctable[hashkey], node);
-	return 0;
+	return process_table_del_pid(pgroup->proctable, pid);
 }

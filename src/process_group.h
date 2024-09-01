@@ -39,7 +39,7 @@
 struct process_group
 {
 	/* hashtable with all the processes (array of struct list of struct process) */
-	struct list *proctable[PIDHASH_SZ];
+	struct process_table *proctable;
 	struct list *proclist;
 	pid_t target_pid;
 	int include_children;
