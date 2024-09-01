@@ -24,6 +24,16 @@
 
 #include "list.h"
 
+#define safe_free(p)     \
+	do                   \
+	{                    \
+		if ((p) != NULL) \
+		{                \
+			free((p));   \
+			(p) = NULL;  \
+		}                \
+	} while (0)
+
 #define EMPTYLIST NULL
 
 void init_list(struct list *l, int keysize)
@@ -78,13 +88,12 @@ void delete_node(struct list *l, struct list_node *node)
 		node->next->previous = node->previous;
 	}
 	l->count--;
-	free(node);
+	safe_free(node);
 }
 
 void destroy_node(struct list *l, struct list_node *node)
 {
-	free(node->data);
-	node->data = NULL;
+	safe_free(node->data);
 	delete_node(l, node);
 }
 
@@ -154,8 +163,7 @@ void clear_list(struct list *l)
 		struct list_node *tmp;
 		tmp = l->first;
 		l->first = l->first->next;
-		free(tmp);
-		tmp = NULL;
+		safe_free(tmp);
 	}
 	l->last = EMPTYLIST;
 	l->count = 0;
@@ -168,10 +176,8 @@ void destroy_list(struct list *l)
 		struct list_node *tmp;
 		tmp = l->first;
 		l->first = l->first->next;
-		free(tmp->data);
-		tmp->data = NULL;
-		free(tmp);
-		tmp = NULL;
+		safe_free(tmp->data);
+		safe_free(tmp);
 	}
 	l->last = EMPTYLIST;
 	l->count = 0;
