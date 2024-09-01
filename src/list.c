@@ -99,7 +99,7 @@ void destroy_node(struct list *l, struct list_node *node)
 
 int is_empty_list(const struct list *l)
 {
-	return (l->count == 0 ? TRUE : FALSE);
+	return l->count == 0;
 }
 
 int get_list_count(const struct list *l)

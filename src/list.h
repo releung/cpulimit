@@ -23,11 +23,6 @@
 
 #define __LIST__
 
-#ifndef TRUE
-#define TRUE 1
-#define FALSE 0
-#endif
-
 struct list_node
 {
     /* pointer to the content of the node */
