@@ -4,13 +4,16 @@
 #include "process_iterator.h"
 #include "list.h"
 
-/*
+/**
  * Structure representing a process table.
  */
 struct process_table
 {
-    struct list **table; /* Array of pointers to linked lists for storing processes */
-    int hashsize;        /* Size of the hash table for the process table */
+    /* Array of pointers to linked lists for storing processes */
+    struct list **table;
+
+    /* Size of the hash table for the process table */
+    int hashsize;
 };
 
 /**

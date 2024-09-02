@@ -23,112 +23,177 @@
 
 #define __LIST__
 
+/**
+ * Structure representing a node in a doubly linked list.
+ */
 struct list_node
 {
-    /* pointer to the content of the node */
+    /* Pointer to the content of the node */
     void *data;
-    /* pointer to previous node */
+
+    /* Pointer to the previous node in the list */
     struct list_node *previous;
-    /* pointer to next node */
+
+    /* Pointer to the next node in the list */
     struct list_node *next;
 };
 
+/**
+ * Structure representing a doubly linked list.
+ */
 struct list
 {
-    /* first node */
+    /* Pointer to the first node in the list */
     struct list_node *first;
-    /* last node */
+
+    /* Pointer to the last node in the list */
     struct list_node *last;
-    /* size of the search key in bytes */
+
+    /* Size of the search key in bytes */
     int keysize;
-    /* element count */
+
+    /* Count of elements in the list */
     int count;
 };
 
-/*
- * Initialize a list, with a specified key size
+/**
+ * Initializes a list with a specified key size.
+ *
+ * @param l Pointer to the list to initialize.
+ * @param keysize Size of the key used for comparisons.
  */
 void init_list(struct list *l, int keysize);
 
-/*
- * Add a new element at the end of the list
- * return the pointer to the new node
+/**
+ * Adds a new element to the end of the list.
+ *
+ * @param l Pointer to the list to which the element will be added.
+ * @param elem Pointer to the element to add.
+ * @return Pointer to the newly created node containing the element.
  */
 struct list_node *add_elem(struct list *l, void *elem);
 
-/*
- * Delete a node
+/**
+ * Deletes a specified node from the list.
+ *
+ * @param l Pointer to the list from which to delete the node.
+ * @param node Pointer to the node to delete.
  */
 void delete_node(struct list *l, struct list_node *node);
 
-/*
- * Delete a node from the list, even the content pointed by it
- * Use only when the content is a dynamically allocated pointer
+/**
+ * Deletes a node from the list and frees its content.
+ *
+ * This function should only be used when the content is dynamically allocated.
+ *
+ * @param l Pointer to the list from which to delete the node.
+ * @param node Pointer to the node to delete.
  */
 void destroy_node(struct list *l, struct list_node *node);
 
-/*
- * Check whether a list is empty or not
+/**
+ * Checks whether the list is empty.
+ *
+ * @param l Pointer to the list to check.
+ * @return Non-zero if the list is empty; zero otherwise.
  */
 int is_empty_list(const struct list *l);
 
-/*
- * Return the element count of the list
+/**
+ * Returns the count of elements in the list.
+ *
+ * @param l Pointer to the list.
+ * @return Number of elements in the list.
  */
 int get_list_count(const struct list *l);
 
-/*
- * Return the first element (content of the node) from the list
+/**
+ * Returns the content of the first element in the list.
+ *
+ * @param l Pointer to the list.
+ * @return Pointer to the content of the first node, or NULL if the list is empty.
  */
 void *first_elem(struct list *l);
 
-/*
- * Return the first node from the list
+/**
+ * Returns the first node in the list.
+ *
+ * @param l Pointer to the list.
+ * @return Pointer to the first node, or NULL if the list is empty.
  */
 struct list_node *first_node(const struct list *l);
 
-/*
- * Return the last element (content of the node) from the list
+/**
+ * Returns the content of the last element in the list.
+ *
+ * @param l Pointer to the list.
+ * @return Pointer to the content of the last node, or NULL if the list is empty.
  */
 void *last_elem(struct list *l);
 
-/*
- * Return the last node from the list
+/**
+ * Returns the last node in the list.
+ *
+ * @param l Pointer to the list.
+ * @return Pointer to the last node, or NULL if the list is empty.
  */
 struct list_node *last_node(const struct list *l);
 
-/*
- * Search an element of the list by content
- * the comparison is done from the specified offset and for a specified length
- * if offset=0, the comparison starts from the address pointed by data
- * if length=0, default keysize is used for length
- * if the element is found, return the node address
- * else return NULL
+/**
+ * Searches for an element in the list by its content.
+ *
+ * Comparison is performed from the specified offset and for a specified length.
+ * If offset=0, comparison starts from the address pointed to by data.
+ * If length=0, the default keysize is used.
+ *
+ * @param l Pointer to the list to search.
+ * @param elem Pointer to the element to locate.
+ * @param offset Offset from which to start the comparison.
+ * @param length Length of the comparison.
+ * @return Pointer to the node if found; NULL if not found.
  */
 struct list_node *xlocate_node(struct list *l, const void *elem, int offset, int length);
 
-/*
- * The same of xlocate_node(), but return the content of the node
+/**
+ * Similar to xlocate_node(), but returns the content of the node.
+ *
+ * @param l Pointer to the list to search.
+ * @param elem Pointer to the element to locate.
+ * @param offset Offset from which to start the comparison.
+ * @param length Length of the comparison.
+ * @return Pointer to the content of the node if found; NULL if not found.
  */
 void *xlocate_elem(struct list *l, const void *elem, int offset, int length);
 
-/*
- * The same of calling xlocate_node() with offset=0 and length=0
+/**
+ * Locates a node in the list using default parameters (offset=0, length=0).
+ *
+ * @param l Pointer to the list to search.
+ * @param elem Pointer to the element to locate.
+ * @return Pointer to the node if found; NULL if not found.
  */
 struct list_node *locate_node(struct list *l, const void *elem);
 
-/*
- * The same of locate_node, but return the content of the node
+/**
+ * Similar to locate_node(), but returns the content of the node.
+ *
+ * @param l Pointer to the list to search.
+ * @param elem Pointer to the element to locate.
+ * @return Pointer to the content of the node if found; NULL if not found.
  */
 void *locate_elem(struct list *l, const void *elem);
 
-/*
- * Delete all the elements in the list
+/**
+ * Deletes all elements in the list.
+ *
+ * @param l Pointer to the list to clear.
  */
 void clear_list(struct list *l);
 
-/*
- * Delete every element in the list, and free the memory pointed by all the node data
+/**
+ * Deletes every element in the list and frees the memory of all node data.
+ *
+ * @param l Pointer to the list to destroy.
  */
 void destroy_list(struct list *l);
 
