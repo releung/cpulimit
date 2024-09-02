@@ -33,9 +33,6 @@
 
 #include "list.h"
 
-#define PIDHASH_SZ 1024
-#define pid_hashfn(x) ((((x) >> 8) ^ (x)) & (PIDHASH_SZ - 1))
-
 /**
  * Structure representing a group of processes for tracking.
  */
