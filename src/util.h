@@ -10,7 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 
-/* Useful macros for unique ID generation and minimum/maximum functions */
+/* Useful macros */
 
 #if defined(__GNUC__) && !defined(__UNIQUE_ID)
 /* Helper macros to concatenate tokens */
@@ -67,14 +67,14 @@
 #ifndef basename
 #ifdef __GNUC__
 /* Helper macro to get the basename of a path */
-#define __basename(path, path_full, last_slash)             \
-	(__extension__({                                        \
-		const char *path_full = (path);                     \
-		const char *last_slash = strrchr((path_full), '/'); \
-		last_slash != NULL ? last_slash + 1 : path_full;    \
+#define __basename(path, full_path, last_slash)              \
+	(__extension__({                                         \
+		const char *full_path = (path);                      \
+		const char *last_slash = strrchr(full_path, '/');    \
+		(last_slash != NULL) ? (last_slash + 1) : full_path; \
 	}))
 #define basename(path) \
-	__basename((path), __UNIQUE_ID(path_full_), __UNIQUE_ID(p_pos_))
+	__basename((path), __UNIQUE_ID(full_path_), __UNIQUE_ID(last_slash_))
 #else
 /* Fallback function declaration for basename */
 const char *__basename(const char *path);
