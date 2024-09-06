@@ -38,20 +38,20 @@
  */
 struct process_group
 {
-	/** Pointer to the process table for storing process information */
-	struct process_table *proctable;
+    /** Pointer to the process table for storing process information */
+    struct process_table *proctable;
 
-	/** Pointer to the list of processes in this group */
-	struct list *proclist;
+    /** Pointer to the list of processes in this group */
+    struct list *proclist;
 
-	/** PID of the target process to monitor */
-	pid_t target_pid;
+    /** PID of the target process to monitor */
+    pid_t target_pid;
 
-	/** Flag indicating whether to include child processes (1 for yes, 0 for no) */
-	int include_children;
+    /** Flag indicating whether to include child processes (1 for yes, 0 for no) */
+    int include_children;
 
-	/** Timestamp of the last update for this process group */
-	struct timespec last_update;
+    /** Timestamp of the last update for this process group */
+    struct timespec last_update;
 };
 
 /**

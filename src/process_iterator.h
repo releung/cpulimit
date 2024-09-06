@@ -43,23 +43,23 @@
  */
 struct process
 {
-	/* Process ID of the process */
-	pid_t pid;
+    /* Process ID of the process */
+    pid_t pid;
 
-	/* Parent Process ID of the process */
-	pid_t ppid;
+    /* Parent Process ID of the process */
+    pid_t ppid;
 
-	/* CPU time used by the process (in milliseconds) */
-	double cputime;
+    /* CPU time used by the process (in milliseconds) */
+    double cputime;
 
-	/* Actual CPU usage estimation (value in range 0-1) */
-	double cpu_usage;
+    /* Actual CPU usage estimation (value in range 0-1) */
+    double cpu_usage;
 
-	/* Absolute path of the executable file */
-	char command[PATH_MAX + 1];
+    /* Absolute path of the executable file */
+    char command[PATH_MAX + 1];
 
-	/* Maximum command length */
-	int max_cmd_len;
+    /* Maximum command length */
+    int max_cmd_len;
 };
 
 /**
@@ -67,11 +67,11 @@ struct process
  */
 struct process_filter
 {
-	/* Process ID to filter */
-	pid_t pid;
+    /* Process ID to filter */
+    pid_t pid;
 
-	/* Flag indicating whether to include child processes (1 for yes, 0 for no) */
-	int include_children;
+    /* Flag indicating whether to include child processes (1 for yes, 0 for no) */
+    int include_children;
 };
 
 /**
@@ -82,33 +82,33 @@ struct process_filter
 struct process_iterator
 {
 #if defined(__linux__)
-	/* Directory stream for accessing the /proc filesystem on Linux */
-	DIR *dip;
+    /* Directory stream for accessing the /proc filesystem on Linux */
+    DIR *dip;
 #elif defined(__FreeBSD__)
-	/* Kernel virtual memory descriptor for accessing process information on FreeBSD */
-	kvm_t *kd;
+    /* Kernel virtual memory descriptor for accessing process information on FreeBSD */
+    kvm_t *kd;
 
-	/* Array of process information structures */
-	struct kinfo_proc *procs;
+    /* Array of process information structures */
+    struct kinfo_proc *procs;
 
-	/* Total number of processes retrieved */
-	int count;
+    /* Total number of processes retrieved */
+    int count;
 
-	/* Current index in the process array */
-	int i;
+    /* Current index in the process array */
+    int i;
 #elif defined(__APPLE__)
-	/* Current index in the process list */
-	int i;
+    /* Current index in the process list */
+    int i;
 
-	/* Total number of processes retrieved */
-	int count;
+    /* Total number of processes retrieved */
+    int count;
 
-	/* List of process IDs */
-	pid_t *pidlist;
+    /* List of process IDs */
+    pid_t *pidlist;
 #endif
 
-	/* Pointer to a process filter to apply during iteration */
-	struct process_filter *filter;
+    /* Pointer to a process filter to apply during iteration */
+    struct process_filter *filter;
 };
 
 /**

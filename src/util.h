@@ -19,27 +19,27 @@
 
 /* Generates a unique ID based on a prefix */
 #define __UNIQUE_ID(prefix) \
-	__PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
+    __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
 #endif
 
 #ifndef MIN
 #ifdef __GNUC__
 /* Helper for finding the minimum of two values, utilizing type safety */
 #define __min(t1, t2, min1, min2, x, y) \
-	(__extension__({                    \
-		t1 min1 = (x);                  \
-		t2 min2 = (y);                  \
-		(void)(&min1 == &min2);         \
-		min1 < min2 ? min1 : min2;      \
-	}))
+    (__extension__({                    \
+        t1 min1 = (x);                  \
+        t2 min2 = (y);                  \
+        (void)(&min1 == &min2);         \
+        min1 < min2 ? min1 : min2;      \
+    }))
 #define MIN(x, y)                                 \
-	__min(__typeof__(x), __typeof__(y),           \
-		  __UNIQUE_ID(min1_), __UNIQUE_ID(min2_), \
-		  x, y)
+    __min(__typeof__(x), __typeof__(y),           \
+          __UNIQUE_ID(min1_), __UNIQUE_ID(min2_), \
+          x, y)
 #else
 /* Simple macro to find the minimum of two values */
 #define MIN(a, b) \
-	(((a) < (b)) ? (a) : (b))
+    (((a) < (b)) ? (a) : (b))
 #endif
 #endif
 
@@ -47,20 +47,20 @@
 #ifdef __GNUC__
 /* Helper for finding the maximum of two values, utilizing type safety */
 #define __max(t1, t2, max1, max2, x, y) \
-	(__extension__({                    \
-		t1 max1 = (x);                  \
-		t2 max2 = (y);                  \
-		(void)(&max1 == &max2);         \
-		max1 > max2 ? max1 : max2;      \
-	}))
+    (__extension__({                    \
+        t1 max1 = (x);                  \
+        t2 max2 = (y);                  \
+        (void)(&max1 == &max2);         \
+        max1 > max2 ? max1 : max2;      \
+    }))
 #define MAX(x, y)                                 \
-	__max(__typeof__(x), __typeof__(y),           \
-		  __UNIQUE_ID(max1_), __UNIQUE_ID(max2_), \
-		  x, y)
+    __max(__typeof__(x), __typeof__(y),           \
+          __UNIQUE_ID(max1_), __UNIQUE_ID(max2_), \
+          x, y)
 #else
 /* Simple macro to find the maximum of two values */
 #define MAX(a, b) \
-	(((a) > (b)) ? (a) : (b))
+    (((a) > (b)) ? (a) : (b))
 #endif
 #endif
 
@@ -68,13 +68,13 @@
 #ifdef __GNUC__
 /* Helper macro to get the basename of a path */
 #define __basename(path, full_path, last_slash)              \
-	(__extension__({                                         \
-		const char *full_path = (path);                      \
-		const char *last_slash = strrchr(full_path, '/');    \
-		(last_slash != NULL) ? (last_slash + 1) : full_path; \
-	}))
+    (__extension__({                                         \
+        const char *full_path = (path);                      \
+        const char *last_slash = strrchr(full_path, '/');    \
+        (last_slash != NULL) ? (last_slash + 1) : full_path; \
+    }))
 #define basename(path) \
-	__basename((path), __UNIQUE_ID(full_path_), __UNIQUE_ID(last_slash_))
+    __basename((path), __UNIQUE_ID(full_path_), __UNIQUE_ID(last_slash_))
 #else
 /* Fallback function declaration for basename */
 const char *__basename(const char *path);
@@ -86,11 +86,11 @@ const char *__basename(const char *path);
 /* Converts nanoseconds to a timespec structure */
 #ifndef nsec2timespec
 #define nsec2timespec(nsec, t)                             \
-	do                                                     \
-	{                                                      \
-		(t)->tv_sec = (time_t)((nsec) / 1e9);              \
-		(t)->tv_nsec = (long)((nsec) - (t)->tv_sec * 1e9); \
-	} while (0)
+    do                                                     \
+    {                                                      \
+        (t)->tv_sec = (time_t)((nsec) / 1e9);              \
+        (t)->tv_nsec = (long)((nsec) - (t)->tv_sec * 1e9); \
+    } while (0)
 #endif
 
 /* Sleep for a specified timespec duration */
@@ -123,7 +123,7 @@ int __get_time(struct timespec *ts);
 /* Returns the difference between two timespecs in milliseconds */
 #ifndef timediff_in_ms
 #define timediff_in_ms(t1, t2) \
-	(((t1)->tv_sec - (t2)->tv_sec) * 1e3 + ((t1)->tv_nsec - (t2)->tv_nsec) / 1e6)
+    (((t1)->tv_sec - (t2)->tv_sec) * 1e3 + ((t1)->tv_nsec - (t2)->tv_nsec) / 1e6)
 #endif
 
 /* Increases the priority of the current process */
