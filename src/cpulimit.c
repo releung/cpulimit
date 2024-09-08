@@ -45,39 +45,48 @@
 #include "util.h"
 
 #ifndef EPSILON
+/* Define a very small value to avoid division by zero */
 #define EPSILON 1e-12
 #endif
 
-/* control time slot in microseconds */
-/* each slot is splitted in a working slice and a sleeping slice */
-/* TODO: make it adaptive, based on the actual system load */
+/* Control time slot in microseconds */
+/* Each slot is split into a working slice and a sleeping slice */
 #define TIME_SLOT 100000
 
 /* GLOBAL VARIABLES */
 
-/* the "family" */
+/* Define a global process group (family of processes) */
 struct process_group pgroup;
-/* pid of cpulimit */
+
+/* PID of cpulimit */
 pid_t cpulimit_pid;
-/* name of this program (maybe cpulimit...) */
+
+/* Name of this program */
 char *program_name;
 
-/* number of cpu */
+/* Number of CPUs available in the system */
 int NCPU;
 
 /* CONFIGURATION VARIABLES */
 
-/* verbose mode */
+/* Verbose mode flag */
 int verbose = 0;
-/* lazy mode (exits if there is no process) */
+
+/* Lazy mode flag (exit if no process is found) */
 int lazy = 0;
 
-/* quit flag for SIGINT and SIGTERM signals */
+/* Quit flag for handling SIGINT and SIGTERM signals */
 volatile sig_atomic_t quit_flag = 0;
 
-/* SIGINT and SIGTERM signal handler */
+/**
+ * Signal handler for SIGINT and SIGTERM signals.
+ * Sets the quit_flag to 1 when a termination signal is received.
+ *
+ * @param sig Signal number (SIGINT or SIGTERM).
+ */
 static void sig_handler(int sig)
 {
+    /* Handle SIGINT and SIGTERM signals by setting quit_flag to 1 */
     switch (sig)
     {
     case SIGINT:
@@ -89,8 +98,15 @@ static void sig_handler(int sig)
     }
 }
 
+/**
+ * Prints the usage information for the program.
+ *
+ * @param stream The file stream to write the usage information to (e.g., stdout).
+ * @param exit_code The exit code to return after printing usage.
+ */
 static void print_usage(FILE *stream, int exit_code)
 {
+    /* Print the usage message along with available options */
     fprintf(stream, "Usage: %s [OPTIONS...] TARGET\n", program_name);
     fprintf(stream, "   OPTIONS\n");
     fprintf(stream, "      -l, --limit=N          percentage of cpu allowed from 0 to %d (required)\n", 100 * NCPU);
@@ -106,59 +122,80 @@ static void print_usage(FILE *stream, int exit_code)
     exit(exit_code);
 }
 
+/**
+ * Dynamically calculates the time slot based on system load.
+ * This allows the program to adapt to varying system conditions.
+ *
+ * @return The calculated dynamic time slot in microseconds.
+ */
 static double get_dynamic_time_slot(void)
 {
     static double time_slot = TIME_SLOT;
-    static const double MIN_TIME_SLOT = TIME_SLOT,
-                        MAX_TIME_SLOT = TIME_SLOT * 5;
+    static const double MIN_TIME_SLOT = TIME_SLOT, /* Minimum allowed time slot */
+        MAX_TIME_SLOT = TIME_SLOT * 5;             /* Maximum allowed time slot */
     double load, new_time_slot;
+
+    /* Get the system load average */
     if (getloadavg(&load, 1) != 1)
     {
         return time_slot;
     }
+
+    /* Adjust the time slot based on system load and number of CPUs */
     new_time_slot = time_slot * load / NCPU / 0.3;
     new_time_slot = MIN(MAX(new_time_slot, MIN_TIME_SLOT), MAX_TIME_SLOT);
+
+    /* Smoothly adjust the time slot using a moving average */
     time_slot = time_slot * 0.95 + new_time_slot * 0.05;
+
     return time_slot;
 }
 
+/**
+ * Controls the CPU usage of a process (and optionally its children).
+ * Limits the amount of time the process can run based on a given percentage.
+ *
+ * @param pid Process ID of the target process.
+ * @param limit The CPU usage limit as a percentage (0.0 to 1.0).
+ * @param include_children Whether to include child processes.
+ */
 static void limit_process(pid_t pid, double limit, int include_children)
 {
-    /* slice of the slot in which the process is allowed to run */
+    /* Slice of time in which the process is allowed to work */
     struct timespec twork;
-    /* slice of the slot in which the process is stopped */
+    /* Slice of time in which the process is stopped */
     struct timespec tsleep;
-    /* generic list item */
+    /* Generic list item for iterating over processes */
     struct list_node *node;
-    /* counter */
+    /* Counter to help with printing status */
     int c = 0;
 
-    /* rate at which we are keeping active the processes (range 0-1) */
-    /* 1 means that the process are using all the twork slice */
+    /* The ratio of the time the process is allowed to work (range 0 to 1) */
     double workingrate = -1;
 
-    /* get a better priority */
+    /* Increase priority of the current process to reduce overhead */
     increase_priority();
 
-    /* build the family */
+    /* Initialize the process group (including children if needed) */
     init_process_group(&pgroup, pid, include_children);
 
     if (verbose)
         printf("Members in the process group owned by %ld: %d\n",
                (long)pgroup.target_pid, pgroup.proclist->count);
 
+    /* Main loop to control the process until quit_flag is set */
     while (!quit_flag)
     {
-        /* total cpu actual usage (range 0-1) */
+        /* CPU usage of the controlled processes */
         /* 1 means that the processes are using 100% cpu */
         double pcpu = -1;
-
         double twork_total_nsec, tsleep_total_nsec;
-
         double time_slot;
 
+        /* Update the process group, including checking for dead processes */
         update_process_group(&pgroup);
 
+        /* Exit if no more processes are running */
         if (pgroup.proclist->count == 0)
         {
             if (verbose)
@@ -166,7 +203,7 @@ static void limit_process(pid_t pid, double limit, int include_children)
             break;
         }
 
-        /* estimate how much the controlled processes are using the cpu in the working interval */
+        /* Estimate CPU usage of all processes in the group */
         for (node = pgroup.proclist->first; node != NULL; node = node->next)
         {
             const struct process *proc = (const struct process *)(node->data);
@@ -179,22 +216,26 @@ static void limit_process(pid_t pid, double limit, int include_children)
             pcpu += proc->cpu_usage;
         }
 
-        /* adjust work and sleep time slices */
+        /* Adjust the work and sleep time slices based on CPU usage */
         if (pcpu < 0)
         {
-            /* it's the 1st cycle, initialize workingrate */
+            /* Initialize workingrate if it's the first cycle */
             pcpu = limit;
             workingrate = limit;
         }
         else
         {
-            /* adjust workingrate */
+            /* Adjust workingrate based on CPU usage and limit */
             workingrate = workingrate * limit / MAX(pcpu, EPSILON);
         }
+
+        /* Clamp workingrate to the valid range (0, 1) */
         workingrate = MAX(MIN(workingrate, 1 - EPSILON), EPSILON);
 
+        /* Get the dynamic time slot */
         time_slot = get_dynamic_time_slot();
 
+        /* Calculate work and sleep times in nanoseconds */
         twork_total_nsec = time_slot * 1000 * workingrate;
         nsec2timespec(twork_total_nsec, &twork);
 
@@ -203,13 +244,14 @@ static void limit_process(pid_t pid, double limit, int include_children)
 
         if (verbose)
         {
+            /* Print CPU usage statistics every 10 cycles */
             if (c % 200 == 0)
                 printf("\n    %%CPU    work quantum    sleep quantum    active rate\n");
             if (c % 10 == 0 && c > 0)
                 printf("%7.2f%%    %9.0f us    %10.0f us    %10.2f%%\n", pcpu * 100, twork_total_nsec / 1000, tsleep_total_nsec / 1000, workingrate * 100);
         }
 
-        /* resume processes */
+        /* Resume processes in the group */
         node = pgroup.proclist->first;
         while (node != NULL)
         {
@@ -217,22 +259,21 @@ static void limit_process(pid_t pid, double limit, int include_children)
             struct process *proc = (struct process *)(node->data);
             if (kill(proc->pid, SIGCONT) != 0)
             {
-                /* process is dead, remove it from family */
+                /* If the process is dead, remove it from the group */
                 if (verbose)
                     fprintf(stderr, "SIGCONT failed. Process %ld dead!\n", (long)proc->pid);
-                /* remove process from group */
                 delete_node(pgroup.proclist, node);
                 remove_process(&pgroup, proc->pid);
             }
             node = next_node;
         }
 
-        /* now processes are free to run (same working slice for all) */
+        /* Allow processes to run during the work slice */
         sleep_timespec(&twork);
 
         if (tsleep.tv_nsec > 0 || tsleep.tv_sec > 0)
         {
-            /* stop processes only if tsleep>0 */
+            /* Stop processes during the sleep slice if needed */
             node = pgroup.proclist->first;
             while (node != NULL)
             {
@@ -240,21 +281,21 @@ static void limit_process(pid_t pid, double limit, int include_children)
                 struct process *proc = (struct process *)(node->data);
                 if (kill(proc->pid, SIGSTOP) != 0)
                 {
-                    /* process is dead, remove it from family */
+                    /* If the process is dead, remove it from the group */
                     if (verbose)
                         fprintf(stderr, "SIGSTOP failed. Process %ld dead!\n", (long)proc->pid);
-                    /* remove process from group */
                     delete_node(pgroup.proclist, node);
                     remove_process(&pgroup, proc->pid);
                 }
                 node = next_node;
             }
-            /* now the processes are sleeping */
+            /* Allow the processes to sleep during the sleep slice */
             sleep_timespec(&tsleep);
         }
         c = (c + 1) % 200;
     }
 
+    /* If the quit_flag is set, resume all processes before exiting */
     if (quit_flag)
     {
         for (node = pgroup.proclist->first; node != NULL; node = node->next)
@@ -264,21 +305,26 @@ static void limit_process(pid_t pid, double limit, int include_children)
         }
     }
 
+    /* Clean up the process group */
     close_process_group(&pgroup);
 }
 
+/**
+ * Handles the cleanup when a termination signal is received.
+ * Clears the current line on the console if the quit flag is set.
+ */
 static void quit_handler(void)
 {
+    /* If quit_flag is set, clear the current line on console (fix for ^C issue) */
     if (quit_flag)
     {
-        /* fix ^C little problem */
         printf("\r");
     }
 }
 
 int main(int argc, char *argv[])
 {
-    /* argument variables */
+    /* Variables to store user-provided arguments */
     char *exe = NULL;
     int perclimit = 0;
     int exe_ok = 0;
@@ -288,10 +334,11 @@ int main(int argc, char *argv[])
     int include_children = 0;
     int command_mode;
 
-    /* parse arguments */
+    /* For parsing command-line options */
     int next_option;
     int option_index = 0;
-    /* A string listing valid short options letters */
+
+    /* Define valid short and long command-line options */
     const char *short_options = "+p:e:l:vzih";
     /* An array describing valid long options */
     const struct option long_options[] = {
@@ -306,62 +353,79 @@ int main(int argc, char *argv[])
 
     double limit;
 
+    /* Set waiting time between process searches */
     struct timespec wait_time = {2, 0};
 
+    /* Signal action struct for handling interrupts */
     struct sigaction sa;
 
+    /* Store the base name of the program */
     static char program_base_name[PATH_MAX + 1];
 
+    /* Register the quit handler to run at program exit */
     atexit(quit_handler);
 
-    /* get program name */
+    /* Extract the program name and store it in program_base_name */
     strncpy(program_base_name, basename(argv[0]), sizeof(program_base_name) - 1);
     program_base_name[sizeof(program_base_name) - 1] = '\0';
     program_name = program_base_name;
-    /* get current pid */
+
+    /* Get the current process ID */
     cpulimit_pid = getpid();
-    /* get cpu count */
+
+    /* Get the number of CPUs available */
     NCPU = get_ncpu();
 
+    /* Parse the command-line options */
     do
     {
         next_option = getopt_long(argc, argv, short_options, long_options, &option_index);
         switch (next_option)
         {
         case 'p':
+            /* Store the PID provided by the user */
             pid = (pid_t)atol(optarg);
             pid_ok = 1;
             break;
         case 'e':
+            /* Store the executable name provided by the user */
             exe = optarg;
             exe_ok = 1;
             break;
         case 'l':
+            /* Store the CPU limit percentage provided by the user */
             perclimit = atoi(optarg);
             limit_ok = 1;
             break;
         case 'v':
+            /* Enable verbose mode */
             verbose = 1;
             break;
         case 'z':
+            /* Enable lazy mode */
             lazy = 1;
             break;
         case 'i':
+            /* Include child processes in the limit */
             include_children = 1;
             break;
         case 'h':
+            /* Print usage information and exit */
             print_usage(stdout, 1);
             break;
         case '?':
+            /* Print usage information on invalid option */
             print_usage(stderr, 1);
             break;
         case -1:
+            /* No more options to process */
             break;
         default:
             abort();
         }
     } while (next_option != -1);
 
+    /* Validate provided PID */
     if (pid_ok && (pid <= 1 || pid >= get_pid_max()))
     {
         fprintf(stderr, "Error: Invalid value for argument PID\n");
@@ -370,15 +434,19 @@ int main(int argc, char *argv[])
     }
     if (pid != 0)
     {
+        /* Implicitly enable lazy mode if a PID is provided */
         lazy = 1;
     }
 
+    /* Ensure that a CPU limit was specified */
     if (!limit_ok)
     {
         fprintf(stderr, "Error: You must specify a cpu limit percentage\n");
         print_usage(stderr, 1);
         exit(1);
     }
+
+    /* Calculate the CPU limit as a fraction */
     limit = perclimit / 100.0;
     if (limit < 0 || limit > NCPU)
     {
@@ -387,14 +455,16 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    /* Determine if a command was provided */
     command_mode = optind < argc;
+
+    /* Ensure exactly one target process (pid, executable, or command) is specified */
     if (exe_ok + pid_ok + command_mode == 0)
     {
         fprintf(stderr, "Error: You must specify one target process, either by name, pid, or command line\n");
         print_usage(stderr, 1);
         exit(1);
     }
-
     if (exe_ok + pid_ok + command_mode > 1)
     {
         fprintf(stderr, "Error: You must specify exactly one target process, either by name, pid, or command line\n");
@@ -402,33 +472,37 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    /* all arguments are ok! */
+    /* Set up signal handlers for SIGINT and SIGTERM */
     sa.sa_handler = sig_handler;
     sa.sa_flags = 0;
     sigemptyset(&sa.sa_mask);
     sigaction(SIGINT, &sa, NULL);
     sigaction(SIGTERM, &sa, NULL);
 
-    /* print the number of available cpu */
+    /* Print number of CPUs if in verbose mode */
     if (verbose)
         printf("%d cpu detected\n", NCPU);
 
+    /* Handle command mode (run a command and limit its CPU usage) */
     if (command_mode)
     {
         int i;
         pid_t child;
-        /* executable file */
+        /* Executable file */
         const char *cmd = argv[optind];
-        /* command line arguments */
+        /* Command line arguments */
         char **cmd_args = (char **)malloc((argc - optind + 1) * sizeof(char *));
         if (cmd_args == NULL)
             exit(2);
+
+        /* Prepare command arguments */
         for (i = 0; i < argc - optind; i++)
         {
             cmd_args[i] = argv[i + optind];
         }
         cmd_args[i] = NULL;
 
+        /* If verbose, print the command being executed */
         if (verbose)
         {
             printf("Running command: '%s", cmd);
@@ -439,6 +513,7 @@ int main(int argc, char *argv[])
             printf("'\n");
         }
 
+        /* Fork a child process to run the command */
         child = fork();
         if (child < 0)
         {
@@ -446,16 +521,15 @@ int main(int argc, char *argv[])
         }
         else if (child == 0)
         {
-            /* target process code */
+            /* Execute the command in the child process */
             int ret = execvp(cmd, cmd_args);
-            /* if we are here there was an error, show it */
-            perror("Error");
+            perror("Error"); /* Display error if execvp fails */
             free(cmd_args);
             exit(ret);
         }
         else
         {
-            /* parent code */
+            /* Parent process forks another limiter process to control CPU usage */
             pid_t limiter;
             free(cmd_args);
             limiter = fork();
@@ -465,7 +539,7 @@ int main(int argc, char *argv[])
             }
             else if (limiter > 0)
             {
-                /* parent */
+                /* Wait for both child and limiter processes to complete */
                 int status_process;
                 int status_limiter;
                 waitpid(child, &status_process, 0);
@@ -482,7 +556,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                /* limiter code */
+                /* Limiter process controls the CPU usage of the child process */
                 if (verbose)
                     printf("Limiting process %ld\n", (long)child);
                 limit_process(child, limit, include_children);
@@ -491,13 +565,13 @@ int main(int argc, char *argv[])
         }
     }
 
+    /* Monitor and limit the target process specified by PID or executable name */
     while (!quit_flag)
     {
-        /* look for the target process..or wait for it */
         pid_t ret = 0;
         if (pid_ok)
         {
-            /* search by pid */
+            /* Search for the process by PID */
             ret = find_process_by_pid(pid);
             if (ret == 0)
             {
@@ -510,7 +584,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            /* search by file or path name */
+            /* Search for the process by executable name */
             ret = find_process_by_name(exe);
             if (ret == 0)
             {
@@ -525,6 +599,8 @@ int main(int argc, char *argv[])
                 pid = ret;
             }
         }
+
+        /* If a process is found, start limiting its CPU usage */
         if (ret > 0)
         {
             if (ret == cpulimit_pid)
@@ -534,12 +610,14 @@ int main(int argc, char *argv[])
                 exit(1);
             }
             printf("Process %ld found\n", (long)pid);
-            /* control */
             limit_process(pid, limit, include_children);
         }
+
+        /* Break the loop if lazy mode is enabled or quit flag is set */
         if (lazy || quit_flag)
             break;
-        /* wait for 2 seconds before next search */
+
+        /* Wait for 2 seconds before the next process search */
         sleep_timespec(&wait_time);
     }
 
