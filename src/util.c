@@ -77,5 +77,7 @@ pid_t get_pid_max(void)
     return (pid_t)99999;
 #elif defined(__APPLE__)
     return (pid_t)99998;
+#else
+    return (pid_t)-1;
 #endif
 }
