@@ -82,10 +82,6 @@ static int read_process_info(pid_t pid, struct process *p)
         {
             ret = -1;
         }
-        else
-        {
-            p->max_cmd_len = sizeof(p->command) - 1;
-        }
         fclose(fd);
     }
     else

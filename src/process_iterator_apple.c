@@ -93,22 +93,14 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     return 0;
 }
 
-static void pti2proc(struct proc_taskallinfo *ti, struct process *process)
+static int pti2proc(struct proc_taskallinfo *ti, struct process *process)
 {
     process->pid = ti->pbsd.pbi_pid;
     process->ppid = ti->pbsd.pbi_ppid;
     process->cputime = ti->ptinfo.pti_total_user / 1e6 + ti->ptinfo.pti_total_system / 1e6;
-    if (ti->pbsd.pbi_name[0] != '\0')
-    {
-        process->max_cmd_len = MIN(sizeof(process->command), sizeof(ti->pbsd.pbi_name)) - 1;
-        strncpy(process->command, ti->pbsd.pbi_name, process->max_cmd_len);
-    }
-    else
-    {
-        process->max_cmd_len = MIN(sizeof(process->command), sizeof(ti->pbsd.pbi_comm)) - 1;
-        strncpy(process->command, ti->pbsd.pbi_comm, process->max_cmd_len);
-    }
-    process->command[process->max_cmd_len] = '\0';
+    if (proc_pidpath(ti->pbsd.pbi_pid, process->command, sizeof(process->command)) <= 0)
+        return -1;
+    return 0;
 }
 
 static int get_process_pti(pid_t pid, struct proc_taskallinfo *ti)
@@ -159,14 +151,13 @@ int get_next_process(struct process_iterator *it, struct process *p)
     if (it->filter->pid != 0 && !it->filter->include_children)
     {
         struct proc_taskallinfo ti;
-        if (get_process_pti(it->filter->pid, &ti) != 0)
+        if (get_process_pti(it->filter->pid, &ti) == 0 && pti2proc(&ti, p) == 0)
         {
-            it->i = it->count = 0;
-            return -1;
+            it->i = it->count = 1;
+            return 0;
         }
-        it->i = it->count = 1;
-        pti2proc(&ti, p);
-        return 0;
+        it->i = it->count = 0;
+        return -1;
     }
     while (it->i < it->count)
     {
@@ -184,7 +175,8 @@ int get_next_process(struct process_iterator *it, struct process *p)
         if (it->filter->pid != 0 && it->filter->include_children)
         {
             it->i++;
-            pti2proc(&ti, p);
+            if (pti2proc(&ti, p) != 0)
+                continue;
             if (p->pid != it->pidlist[it->i - 1]) /* I don't know why this can happen */
                 continue;
             if (p->pid != it->filter->pid && !is_child_of(p->pid, it->filter->pid))
@@ -194,7 +186,8 @@ int get_next_process(struct process_iterator *it, struct process *p)
         else if (it->filter->pid == 0)
         {
             it->i++;
-            pti2proc(&ti, p);
+            if (pti2proc(&ti, p) != 0)
+                continue;
             return 0;
         }
     }

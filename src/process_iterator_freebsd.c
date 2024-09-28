@@ -56,21 +56,23 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     return 0;
 }
 
-static void kproc2proc(kvm_t *kd, struct kinfo_proc *kproc, struct process *proc)
+static int kproc2proc(kvm_t *kd, struct kinfo_proc *kproc, struct process *proc)
 {
     char **args;
+    size_t len_max;
     proc->pid = kproc->ki_pid;
     proc->ppid = kproc->ki_ppid;
     proc->cputime = kproc->ki_runtime / 1000.0;
-    proc->max_cmd_len = sizeof(proc->command) - 1;
-    if ((args = kvm_getargv(kd, kproc, sizeof(proc->command))) != NULL)
+    len_max = sizeof(proc->command) - 1;
+    if ((args = kvm_getargv(kd, kproc, len_max)) != NULL)
     {
-        strncpy(proc->command, args[0], proc->max_cmd_len);
-        proc->command[proc->max_cmd_len] = '\0';
+        strncpy(proc->command, args[0], len_max);
+        proc->command[len_max] = '\0';
+        return 0;
     }
     else
     {
-        proc->command[0] = '\0';
+        return -1;
     }
 }
 
@@ -82,7 +84,8 @@ static int get_single_process(kvm_t *kd, pid_t pid, struct process *process)
     {
         return -1;
     }
-    kproc2proc(kd, kproc, process);
+    if (kproc2proc(kd, kproc, process) != 0)
+        return -1;
     return 0;
 }
 
@@ -162,7 +165,8 @@ int get_next_process(struct process_iterator *it, struct process *p)
         if (it->filter->pid != 0 && it->filter->include_children)
         {
             it->i++;
-            kproc2proc(it->kd, kproc, p);
+            if (kproc2proc(it->kd, kproc, p) != 0)
+                continue;
             if (p->pid != it->filter->pid &&
                 !_is_child_of(it->kd, p->pid, it->filter->pid))
                 continue;
@@ -171,7 +175,8 @@ int get_next_process(struct process_iterator *it, struct process *p)
         else if (it->filter->pid == 0)
         {
             it->i++;
-            kproc2proc(it->kd, kproc, p);
+            if (kproc2proc(it->kd, kproc, p) != 0)
+                continue;
             return 0;
         }
     }

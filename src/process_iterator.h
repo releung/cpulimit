@@ -57,9 +57,6 @@ struct process
 
     /* Absolute path of the executable file */
     char command[PATH_MAX + 1];
-
-    /* Maximum command length */
-    int max_cmd_len;
 };
 
 /**
