@@ -28,21 +28,25 @@ jobs:
           ref: master
           fetch-depth: 0
 
-      - name: Compile dynamic
+      - name: Compile in macOS
         if: ${{ startsWith( matrix.os, 'macos-' ) }}
         run: |
           make
           sudo ./tests/process_iterator_test
-          cp ./tests/process_iterator_test ./tests/abcdefghijklmnopqrstuvwxyzabcdefghi
-          sudo ./tests/abcdefghijklmnopqrstuvwxyzabcdefghi
+          random_file="$(mktemp $(printf 'X%.0s' $(seq 1 255)))"
+          cp ./tests/process_iterator_test ./tests/${random_file}
+          echo "./tests/${random_file}"
+          sudo ./tests/${random_file}
 
-      - name: Compile static
+      - name: Compile in Ubuntu
         if: ${{ startsWith( matrix.os, 'ubuntu-' ) }}
         run: |
           make LDFLAGS="-static"
           sudo ./tests/process_iterator_test
-          cp ./tests/process_iterator_test ./tests/abcdefghijklmnopqrstuvwxyzabcdefghi
-          sudo ./tests/abcdefghijklmnopqrstuvwxyzabcdefghi
+          random_file="$(mktemp $(printf 'X%.0s' $(seq 1 255)))"
+          cp ./tests/process_iterator_test ./tests/${random_file}
+          echo "./tests/${random_file}"
+          sudo ./tests/${random_file}
 
       - name: Upload
         uses: actions/upload-artifact@main
@@ -72,8 +76,10 @@ jobs:
         run: |
           gmake
           sudo ./tests/process_iterator_test
-          cp ./tests/process_iterator_test ./tests/abcdefghijklmnopqrstuvwxyzabcdefghi
-          sudo ./tests/abcdefghijklmnopqrstuvwxyzabcdefghi
+          random_file="$(mktemp $(printf 'X%.0s' $(seq 1 255)))"
+          cp ./tests/process_iterator_test ./tests/${random_file}
+          echo "./tests/${random_file}"
+          sudo ./tests/${random_file}
 
     - name: Upload
       uses: actions/upload-artifact@main
