@@ -135,8 +135,10 @@ pid_t getppid_of(pid_t pid)
 
 int is_child_of(pid_t child_pid, pid_t parent_pid)
 {
-    if (child_pid <= 0 || parent_pid <= 0 || child_pid == parent_pid)
+    if (child_pid <= 1 || parent_pid <= 0 || child_pid == parent_pid)
         return 0;
+    if (parent_pid == 1)
+        return 1;
     while (child_pid > 1 && child_pid != parent_pid)
     {
         child_pid = getppid_of(child_pid);
