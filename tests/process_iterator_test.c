@@ -201,8 +201,8 @@ static void test_process_name(void)
     struct process_iterator it;
     struct process process;
     struct process_filter filter;
-    static char command_basename[PATH_MAX + 1];
-    static char process_basename[PATH_MAX + 1];
+    static char command_basename[PATH_MAX];
+    static char process_basename[PATH_MAX];
     filter.pid = getpid();
     filter.include_children = 0;
     init_process_iterator(&it, &filter);
@@ -213,7 +213,7 @@ static void test_process_name(void)
     command_basename[sizeof(command_basename) - 1] = '\0';
     strncpy(process_basename, basename(process.command), sizeof(process_basename) - 1);
     process_basename[sizeof(process_basename) - 1] = '\0';
-    assert(strcmp(command_basename, process_basename) == 0);
+    assert(strncmp(command_basename, process_basename, sizeof(command_basename)) == 0);
     assert(get_next_process(&it, &process) != 0);
     close_process_iterator(&it);
 }

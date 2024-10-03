@@ -56,7 +56,7 @@ struct process
     double cpu_usage;
 
     /* Absolute path of the executable file */
-    char command[PATH_MAX + 1];
+    char command[PATH_MAX];
 };
 
 /**

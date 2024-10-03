@@ -68,7 +68,7 @@ pid_t find_process_by_name(char *process_name)
     while (get_next_process(&it, &proc) != -1)
     {
         /* process found */
-        if (strcmp(basename(proc.command), process_basename) == 0)
+        if (strncmp(basename(proc.command), process_basename, sizeof(proc.command)) == 0)
         {
             if (pid < 0)
             {

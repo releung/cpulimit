@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
     struct sigaction sa;
 
     /* Store the base name of the program */
-    static char program_base_name[PATH_MAX + 1];
+    static char program_base_name[PATH_MAX];
 
     /* Register the quit handler to run at program exit */
     atexit(quit_handler);
