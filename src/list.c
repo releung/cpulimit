@@ -34,8 +34,6 @@
         }                \
     } while (0)
 
-#define EMPTYLIST NULL
-
 void init_list(struct list *l, int keysize)
 {
     l->first = l->last = NULL;
@@ -137,7 +135,7 @@ struct list_node *xlocate_node(struct list *l, const void *elem, int offset, int
             return (tmp);
         tmp = tmp->next;
     }
-    return EMPTYLIST;
+    return NULL;
 }
 
 struct list_node *locate_node(struct list *l, const void *elem)
@@ -158,20 +156,20 @@ void *locate_elem(struct list *l, const void *elem)
 
 void clear_list(struct list *l)
 {
-    while (l->first != EMPTYLIST)
+    while (l->first != NULL)
     {
         struct list_node *tmp;
         tmp = l->first;
         l->first = l->first->next;
         safe_free(tmp);
     }
-    l->last = EMPTYLIST;
+    l->last = NULL;
     l->count = 0;
 }
 
 void destroy_list(struct list *l)
 {
-    while (l->first != EMPTYLIST)
+    while (l->first != NULL)
     {
         struct list_node *tmp;
         tmp = l->first;
@@ -179,6 +177,6 @@ void destroy_list(struct list *l)
         safe_free(tmp->data);
         safe_free(tmp);
     }
-    l->last = EMPTYLIST;
+    l->last = NULL;
     l->count = 0;
 }
