@@ -87,14 +87,15 @@
 /**
  * Helper macro to get the basename of a path
  */
-#define __basename(path, full_path, last_slash)              \
+#define __basename(full_path, last_slash, path)              \
     (__extension__({                                         \
-        const char *full_path = (path);                      \
-        const char *last_slash = strrchr(full_path, '/');    \
+        const char *full_path, *last_slash;                  \
+        full_path = (path);                                  \
+        last_slash = strrchr(full_path, '/');                \
         (last_slash != NULL) ? (last_slash + 1) : full_path; \
     }))
 #define basename(path) \
-    __basename((path), __UNIQUE_ID(full_path_), __UNIQUE_ID(last_slash_))
+    __basename(__UNIQUE_ID(full_path_), __UNIQUE_ID(last_slash_), path)
 #else
 /**
  * Get the basename of a path
