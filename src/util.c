@@ -2,10 +2,10 @@
 #define _GNU_SOURCE
 #endif
 
-#include "util.h"
 #include <sys/resource.h>
 #include <unistd.h>
 #include <stdio.h>
+#include "util.h"
 
 #ifdef __IMPL_BASENAME
 const char *__basename(const char *path)

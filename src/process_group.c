@@ -34,8 +34,8 @@
 #include "process_iterator.h"
 #include "process_group.h"
 #include "list.h"
-#include "util.h"
 #include "process_table.h"
+#include "util.h"
 
 /* look for a process by pid
 search_pid   : pid of the wanted process
