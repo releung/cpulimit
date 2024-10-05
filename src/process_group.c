@@ -137,7 +137,7 @@ int close_process_group(struct process_group *pgroup)
     return 0;
 }
 
-static struct process *process_dup(struct process *proc)
+static struct process *process_dup(const struct process *proc)
 {
     struct process *p = (struct process *)malloc(sizeof(struct process));
     if (p == NULL)
