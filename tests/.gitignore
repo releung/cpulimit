@@ -1,4 +1,5 @@
 *.o
 *~
 busy
+multi_process_busy
 process_iterator_test
