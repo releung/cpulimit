@@ -363,7 +363,11 @@ int main(int argc, char *argv[])
     static char program_base_name[PATH_MAX];
 
     /* Register the quit handler to run at program exit */
-    atexit(&quit_handler);
+    if (atexit(quit_handler) != 0)
+    {
+        fprintf(stderr, "Failed to register quit_handler\n");
+        exit(1);
+    }
 
     /* Extract the program name and store it in program_base_name */
     strncpy(program_base_name, basename(argv[0]), sizeof(program_base_name) - 1);
