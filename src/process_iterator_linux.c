@@ -69,58 +69,45 @@ static int read_process_info(pid_t pid, struct process *p)
     double utime, stime;
     long ppid;
     FILE *fd;
-    int ret = 0;
     static double sc_clk_tck = -1.0;
 
     p->pid = pid;
 
     /* read command line */
     sprintf(exefile, "/proc/%ld/cmdline", (long)p->pid);
-    if ((fd = fopen(exefile, "r")) != NULL)
+    if ((fd = fopen(exefile, "r")) == NULL)
     {
-        if (fgets(p->command, sizeof(p->command), fd) == NULL)
-        {
-            ret = -1;
-        }
+        return -1;
+    }
+    if (fgets(p->command, sizeof(p->command), fd) == NULL)
+    {
         fclose(fd);
+        return -1;
     }
-    else
-    {
-        ret = -1;
-    }
-
-    if (ret != 0)
-    {
-        return ret;
-    }
+    fclose(fd);
 
     /* read stat file */
     sprintf(statfile, "/proc/%ld/stat", (long)p->pid);
-    if ((fd = fopen(statfile, "r")) != NULL)
+    if ((fd = fopen(statfile, "r")) == NULL)
     {
-        if (fscanf(fd, "%*d (%*[^)]) %c %ld %*d %*d %*d %*d %*d %*d %*d %*d %*d %lf %lf",
-                   &state, &ppid, &utime, &stime) != 4 ||
-            strchr("ZXx", state) != NULL)
-        {
-            ret = -1;
-        }
-        else
-        {
-            p->ppid = (pid_t)ppid;
-            if (sc_clk_tck < 0)
-            {
-                sc_clk_tck = (double)sysconf(_SC_CLK_TCK);
-            }
-            p->cputime = (utime + stime) * 1000.0 / sc_clk_tck;
-        }
+        return -1;
+    }
+    if (fscanf(fd, "%*d (%*[^)]) %c %ld %*d %*d %*d %*d %*d %*d %*d %*d %*d %lf %lf",
+               &state, &ppid, &utime, &stime) != 4 ||
+        strchr("ZXx", state) != NULL)
+    {
         fclose(fd);
+        return -1;
     }
-    else
+    fclose(fd);
+    p->ppid = (pid_t)ppid;
+    if (sc_clk_tck < 0)
     {
-        ret = -1;
+        sc_clk_tck = (double)sysconf(_SC_CLK_TCK);
     }
+    p->cputime = (utime + stime) * 1000.0 / sc_clk_tck;
 
-    return ret;
+    return 0;
 }
 
 pid_t getppid_of(pid_t pid)
