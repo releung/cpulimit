@@ -171,9 +171,14 @@ int is_child_of(pid_t child_pid, pid_t parent_pid)
 
 static int is_numeric(const char *str)
 {
-    for (; *str != '\0' && isdigit(*str); str++)
-        ;
-    return *str == '\0';
+    if (str == NULL || *str == '\0')
+        return 0;
+    for (; *str != '\0'; str++)
+    {
+        if (!isdigit(*str))
+            return 0;
+    }
+    return 1;
 }
 
 int get_next_process(struct process_iterator *it, struct process *p)
