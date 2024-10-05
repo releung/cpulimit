@@ -363,7 +363,7 @@ int main(int argc, char *argv[])
     static char program_base_name[PATH_MAX];
 
     /* Register the quit handler to run at program exit */
-    atexit(quit_handler);
+    atexit(&quit_handler);
 
     /* Extract the program name and store it in program_base_name */
     strncpy(program_base_name, basename(argv[0]), sizeof(program_base_name) - 1);
@@ -473,7 +473,7 @@ int main(int argc, char *argv[])
     }
 
     /* Set up signal handlers for SIGINT and SIGTERM */
-    sa.sa_handler = sig_handler;
+    sa.sa_handler = &sig_handler;
     sa.sa_flags = 0;
     sigemptyset(&sa.sa_mask);
     sigaction(SIGINT, &sa, NULL);
