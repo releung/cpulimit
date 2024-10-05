@@ -39,11 +39,7 @@
 static int check_proc(void)
 {
     struct statfs mnt;
-    if (statfs("/proc", &mnt) < 0)
-        return 0;
-    if (mnt.f_type != PROC_SUPER_MAGIC)
-        return 0;
-    return 1;
+    return statfs("/proc", &mnt) == 0 && mnt.f_type == PROC_SUPER_MAGIC;
 }
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
