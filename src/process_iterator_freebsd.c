@@ -64,16 +64,11 @@ static int kproc2proc(kvm_t *kd, struct kinfo_proc *kproc, struct process *proc)
     proc->ppid = kproc->ki_ppid;
     proc->cputime = kproc->ki_runtime / 1000.0;
     len_max = sizeof(proc->command) - 1;
-    if ((args = kvm_getargv(kd, kproc, len_max)) != NULL)
-    {
-        strncpy(proc->command, args[0], len_max);
-        proc->command[len_max] = '\0';
-        return 0;
-    }
-    else
-    {
+    if ((args = kvm_getargv(kd, kproc, len_max)) == NULL)
         return -1;
-    }
+    strncpy(proc->command, args[0], len_max);
+    proc->command[len_max] = '\0';
+    return 0;
 }
 
 static int get_single_process(kvm_t *kd, pid_t pid, struct process *process)
