@@ -191,9 +191,7 @@ int get_next_process(struct process_iterator *it, struct process *p)
         int ret = read_process_info(it->filter->pid, p);
         closedir(it->dip);
         it->dip = NULL;
-        if (ret != 0)
-            return -1;
-        return 0;
+        return ret == 0 ? 0 : -1;
     }
 
     /* read in from /proc and seek for process dirs */
