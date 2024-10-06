@@ -127,9 +127,10 @@ static int get_start_time(pid_t pid, struct timespec *start_time)
     struct stat procfs_stat;
     char procfs_path[32];
     int ret;
+    if (start_time == NULL)
+        return -1;
     sprintf(procfs_path, "/proc/%ld", (long)pid);
-    ret = stat(procfs_path, &procfs_stat);
-    if (ret == 0 && start_time != NULL)
+    if ((ret = stat(procfs_path, &procfs_stat)) == 0)
         *start_time = procfs_stat.st_ctim;
     return ret;
 }
