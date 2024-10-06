@@ -110,16 +110,15 @@ pid_t getppid_of(pid_t pid)
 {
     char statfile[32];
     FILE *fd;
-    long ppid = -1;
+    long ppid;
     if (pid <= 0)
         return (pid_t)(-1);
     sprintf(statfile, "/proc/%ld/stat", (long)pid);
-    if ((fd = fopen(statfile, "r")) != NULL)
-    {
-        if (fscanf(fd, "%*d (%*[^)]) %*c %ld", &ppid) != 1)
-            ppid = -1;
-        fclose(fd);
-    }
+    if ((fd = fopen(statfile, "r")) == NULL)
+        return (pid_t)(-1);
+    if (fscanf(fd, "%*d (%*[^)]) %*c %ld", &ppid) != 1)
+        ppid = -1;
+    fclose(fd);
     return (pid_t)ppid;
 }
 
