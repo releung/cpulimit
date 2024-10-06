@@ -220,12 +220,19 @@ int get_next_process(struct process_iterator *it, struct process *p)
 
 int close_process_iterator(struct process_iterator *it)
 {
-    if (it->dip != NULL && closedir(it->dip) == -1)
+    if (it == NULL)
+        return -1; /* Invalid argument */
+
+    if (it->dip != NULL)
     {
-        perror("closedir");
-        return 1;
+        if (closedir(it->dip) == -1)
+        {
+            perror("closedir");
+            return 1; /* Error while closing directory */
+        }
+        it->dip = NULL;
     }
-    it->dip = NULL;
+
     return 0;
 }
 
