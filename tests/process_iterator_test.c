@@ -183,7 +183,7 @@ static void test_process_group_single(int include_children)
             assert(p->ppid == getpid());
             /* p->cpu_usage should be -1 or [0, 1] */
             assert((p->cpu_usage >= (-1.00001) && p->cpu_usage <= (-0.99999)) ||
-                   (p->cpu_usage >= 0 && p->cpu_usage <= 1.05));
+                   (p->cpu_usage >= 0 && p->cpu_usage <= 1.0));
             count++;
         }
         assert(count == 1);
