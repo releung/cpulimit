@@ -4,11 +4,8 @@ override CFLAGS := $(filter-out -std=% -ansi -W%,$(CFLAGS)) \
 			-Wall -Wextra -pedantic \
 			-Wmissing-prototypes -Wstrict-prototypes \
 			-Wold-style-definition
-TARGETS = busy multi_process_busy process_iterator_test
+TARGETS := $(patsubst %.c,%,$(wildcard *.c))
 SRC = ../src
-SYSLIBS ?= -lpthread $(SRC)/util.c
-LIBS := $(SRC)/list.c $(SRC)/process_iterator.c $(SRC)/process_group.c \
-		$(SRC)/process_table.c $(SRC)/util.c 
 
 UNAME ?= $(shell uname)
 ifeq ($(UNAME), FreeBSD)
@@ -23,14 +20,14 @@ endif
 
 all: $(TARGETS)
 
-busy: busy.c
-	$(CC) $(CFLAGS) $^ $(SYSLIBS) $(LDFLAGS) -o $@
+busy: busy.c $(wildcard $(SRC)/util.*)
+	$(CC) $(CFLAGS) $(filter-out %.h, $^) -lpthread $(LDFLAGS) -o $@
 
 multi_process_busy: multi_process_busy.c
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
-process_iterator_test: process_iterator_test.c $(LIBS)
-	$(CC) $(CFLAGS) -I$(SRC) $^ $(LDFLAGS) -o $@
+process_iterator_test: process_iterator_test.c $(filter-out $(SRC)/cpulimit.c, $(wildcard $(SRC)/*.c $(SRC)/*.h))
+	$(CC) $(CFLAGS) $(filter-out $(SRC)/process_iterator_%.c %.h, $^) $(LDFLAGS) -o $@
 
 clean:
 	rm -f *~ $(TARGETS)
