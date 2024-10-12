@@ -31,9 +31,16 @@ struct process *process_table_find(const struct process_table *pt, const struct 
 
 struct process *process_table_find_pid(const struct process_table *pt, pid_t pid)
 {
-    struct process p;
-    p.pid = pid;
-    return process_table_find(pt, &p);
+    struct process *p, *res;
+    p = (struct process *)malloc(sizeof(struct process));
+    if (p == NULL)
+    {
+        exit(1);
+    }
+    p->pid = pid;
+    res = process_table_find(pt, p);
+    free(p);
+    return res;
 }
 
 void process_table_add(struct process_table *pt, struct process *p)
@@ -70,9 +77,17 @@ int process_table_del(struct process_table *pt, const struct process *p)
 
 int process_table_del_pid(struct process_table *pt, pid_t pid)
 {
-    struct process p;
-    p.pid = pid;
-    return process_table_del(pt, &p);
+    struct process *p;
+    int ret;
+    p = (struct process *)malloc(sizeof(struct process));
+    if (p == NULL)
+    {
+        exit(1);
+    }
+    p->pid = pid;
+    ret = process_table_del(pt, p);
+    free(p);
+    return ret;
 }
 
 void process_table_destroy(struct process_table *pt)

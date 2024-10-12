@@ -50,19 +50,21 @@ static void ignore_signal(int sig __attribute__((unused)))
 static void test_single_process(void)
 {
     struct process_iterator it;
-    struct process process;
+    struct process *process;
     struct process_filter filter;
     int count;
+    process = (struct process *)malloc(sizeof(struct process));
+    assert(process != NULL);
     /* don't iterate children */
     filter.pid = getpid();
     filter.include_children = 0;
     count = 0;
     init_process_iterator(&it, &filter);
-    while (get_next_process(&it, &process) == 0)
+    while (get_next_process(&it, process) == 0)
     {
-        assert(process.pid == getpid());
-        assert(process.ppid == getppid());
-        assert(process.cputime <= 100);
+        assert(process->pid == getpid());
+        assert(process->ppid == getppid());
+        assert(process->cputime <= 100);
         count++;
     }
     assert(count == 1);
@@ -72,21 +74,22 @@ static void test_single_process(void)
     filter.include_children = 0;
     count = 0;
     init_process_iterator(&it, &filter);
-    while (get_next_process(&it, &process) == 0)
+    while (get_next_process(&it, process) == 0)
     {
-        assert(process.pid == getpid());
-        assert(process.ppid == getppid());
-        assert(process.cputime <= 100);
+        assert(process->pid == getpid());
+        assert(process->ppid == getppid());
+        assert(process->cputime <= 100);
         count++;
     }
     assert(count == 1);
+    free(process);
     close_process_iterator(&it);
 }
 
 static void test_multiple_process(void)
 {
     struct process_iterator it;
-    struct process process;
+    struct process *process;
     struct process_filter filter;
     int count = 0;
     pid_t child = fork();
@@ -97,21 +100,24 @@ static void test_multiple_process(void)
             sleep(5);
         exit(1);
     }
+    process = (struct process *)malloc(sizeof(struct process));
+    assert(process != NULL);
     filter.pid = getpid();
     filter.include_children = 1;
     init_process_iterator(&it, &filter);
-    while (get_next_process(&it, &process) == 0)
+    while (get_next_process(&it, process) == 0)
     {
-        if (process.pid == getpid())
-            assert(process.ppid == getppid());
-        else if (process.pid == child)
-            assert(process.ppid == getpid());
+        if (process->pid == getpid())
+            assert(process->ppid == getppid());
+        else if (process->pid == child)
+            assert(process->ppid == getpid());
         else
             assert(0);
-        assert(process.cputime <= 100);
+        assert(process->cputime <= 100);
         count++;
     }
     assert(count == 2);
+    free(process);
     close_process_iterator(&it);
     kill(child, SIGKILL);
 }
@@ -119,23 +125,26 @@ static void test_multiple_process(void)
 static void test_all_processes(void)
 {
     struct process_iterator it;
-    struct process process;
+    struct process *process;
     struct process_filter filter;
     int count = 0;
     filter.pid = 0;
     filter.include_children = 0;
+    process = (struct process *)malloc(sizeof(struct process));
+    assert(process != NULL);
     init_process_iterator(&it, &filter);
 
-    while (get_next_process(&it, &process) == 0)
+    while (get_next_process(&it, process) == 0)
     {
-        if (process.pid == getpid())
+        if (process->pid == getpid())
         {
-            assert(process.ppid == getppid());
-            assert(process.cputime <= 100);
+            assert(process->ppid == getppid());
+            assert(process->cputime <= 100);
         }
         count++;
     }
     assert(count >= 10);
+    free(process);
     close_process_iterator(&it);
 }
 
@@ -200,22 +209,25 @@ char *command = NULL;
 static void test_process_name(void)
 {
     struct process_iterator it;
-    struct process process;
+    struct process *process;
     struct process_filter filter;
     static char command_basename[PATH_MAX];
     static char process_basename[PATH_MAX];
+    process = (struct process *)malloc(sizeof(struct process));
+    assert(process != NULL);
     filter.pid = getpid();
     filter.include_children = 0;
     init_process_iterator(&it, &filter);
-    assert(get_next_process(&it, &process) == 0);
-    assert(process.pid == getpid());
-    assert(process.ppid == getppid());
+    assert(get_next_process(&it, process) == 0);
+    assert(process->pid == getpid());
+    assert(process->ppid == getppid());
     strncpy(command_basename, basename(command), sizeof(command_basename) - 1);
     command_basename[sizeof(command_basename) - 1] = '\0';
-    strncpy(process_basename, basename(process.command), sizeof(process_basename) - 1);
+    strncpy(process_basename, basename(process->command), sizeof(process_basename) - 1);
     process_basename[sizeof(process_basename) - 1] = '\0';
     assert(strncmp(command_basename, process_basename, sizeof(command_basename)) == 0);
-    assert(get_next_process(&it, &process) != 0);
+    assert(get_next_process(&it, process) != 0);
+    free(process);
     close_process_iterator(&it);
 }
 
@@ -247,15 +259,18 @@ static void test_find_process_by_name(void)
 static void test_getppid_of(void)
 {
     struct process_iterator it;
-    struct process process;
+    struct process *process;
     struct process_filter filter;
     filter.pid = 0;
     filter.include_children = 0;
+    process = (struct process *)malloc(sizeof(struct process));
+    assert(process != NULL);
     init_process_iterator(&it, &filter);
-    while (get_next_process(&it, &process) == 0)
+    while (get_next_process(&it, process) == 0)
     {
-        assert(getppid_of(process.pid) == process.ppid);
+        assert(getppid_of(process->pid) == process->ppid);
     }
+    free(process);
     close_process_iterator(&it);
     assert(getppid_of(getpid()) == getppid());
 }

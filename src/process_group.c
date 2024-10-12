@@ -58,23 +58,27 @@ pid_t find_process_by_name(char *process_name)
 
     /* process iterator */
     struct process_iterator it;
-    struct process proc;
+    struct process *proc;
     struct process_filter filter;
     const char *process_basename = basename(process_name);
+    proc = (struct process *)malloc(sizeof(struct process));
+    if (proc == NULL)
+        exit(1);
     filter.pid = 0;
     filter.include_children = 0;
     init_process_iterator(&it, &filter);
-    while (get_next_process(&it, &proc) != -1)
+    while (get_next_process(&it, proc) != -1)
     {
         /* process found */
-        if (strncmp(basename(proc.command), process_basename, sizeof(proc.command)) == 0)
+        if (strncmp(basename(proc->command), process_basename, sizeof(proc->command)) == 0)
         {
-            if (pid < 0 || is_child_of(pid, proc.pid))
+            if (pid < 0 || is_child_of(pid, proc->pid))
             {
-                pid = proc.pid;
+                pid = proc->pid;
             }
         }
     }
+    free(proc);
     if (close_process_iterator(&it) != 0)
         exit(1);
 
@@ -142,11 +146,16 @@ static struct process *process_dup(const struct process *proc)
 void update_process_group(struct process_group *pgroup)
 {
     struct process_iterator it;
-    struct process tmp_process, *p;
+    struct process *tmp_process, *p;
     struct process_filter filter;
     struct timespec now;
     double dt;
     if (get_time(&now))
+    {
+        exit(1);
+    }
+    tmp_process = (struct process *)malloc(sizeof(struct process));
+    if (tmp_process == NULL)
     {
         exit(1);
     }
@@ -158,14 +167,14 @@ void update_process_group(struct process_group *pgroup)
     clear_list(pgroup->proclist);
     init_list(pgroup->proclist, sizeof(pid_t));
 
-    while (get_next_process(&it, &tmp_process) != -1)
+    while (get_next_process(&it, tmp_process) != -1)
     {
-        p = process_table_find(pgroup->proctable, &tmp_process);
+        p = process_table_find(pgroup->proctable, tmp_process);
         if (p == NULL)
         {
             /* process is new. add it */
-            tmp_process.cpu_usage = -1;
-            p = process_dup(&tmp_process);
+            tmp_process->cpu_usage = -1;
+            p = process_dup(tmp_process);
             process_table_add(pgroup->proctable, p);
             add_elem(pgroup->proclist, p);
         }
@@ -176,7 +185,7 @@ void update_process_group(struct process_group *pgroup)
             if (dt < MIN_DT)
                 continue;
             /* process exists. update CPU usage */
-            sample = (tmp_process.cputime - p->cputime) / dt;
+            sample = (tmp_process->cputime - p->cputime) / dt;
             sample = MIN(sample, 1.0);
             if (p->cpu_usage < 0)
             {
@@ -188,9 +197,10 @@ void update_process_group(struct process_group *pgroup)
                 /* usage adjustment */
                 p->cpu_usage = (1.0 - ALPHA) * p->cpu_usage + ALPHA * sample;
             }
-            p->cputime = tmp_process.cputime;
+            p->cputime = tmp_process->cputime;
         }
     }
+    free(tmp_process);
     close_process_iterator(&it);
     if (dt < MIN_DT)
         return;
