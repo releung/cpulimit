@@ -211,8 +211,6 @@ static void test_process_name(void)
     struct process_iterator it;
     struct process *process;
     struct process_filter filter;
-    static char command_basename[PATH_MAX];
-    static char process_basename[PATH_MAX];
     process = (struct process *)malloc(sizeof(struct process));
     assert(process != NULL);
     filter.pid = getpid();
@@ -221,11 +219,7 @@ static void test_process_name(void)
     assert(get_next_process(&it, process) == 0);
     assert(process->pid == getpid());
     assert(process->ppid == getppid());
-    strncpy(command_basename, basename(command), sizeof(command_basename) - 1);
-    command_basename[sizeof(command_basename) - 1] = '\0';
-    strncpy(process_basename, basename(process->command), sizeof(process_basename) - 1);
-    process_basename[sizeof(process_basename) - 1] = '\0';
-    assert(strncmp(command_basename, process_basename, sizeof(command_basename)) == 0);
+    assert(strncmp(basename(command), basename(process->command), sizeof(process->command)) == 0);
     assert(get_next_process(&it, process) != 0);
     free(process);
     close_process_iterator(&it);
