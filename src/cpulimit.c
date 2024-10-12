@@ -64,7 +64,7 @@ struct process_group pgroup;
 pid_t cpulimit_pid;
 
 /* Name of this program */
-char *program_name;
+const char *program_name;
 
 /* Number of CPUs available in the system */
 int NCPU;
@@ -361,9 +361,6 @@ int main(int argc, char *argv[])
     /* Signal action struct for handling interrupts */
     struct sigaction sa;
 
-    /* Store the base name of the program */
-    static char program_base_name[PATH_MAX];
-
     /* Register the quit handler to run at program exit */
     if (atexit(quit_handler) != 0)
     {
@@ -372,9 +369,7 @@ int main(int argc, char *argv[])
     }
 
     /* Extract the program name and store it in program_base_name */
-    strncpy(program_base_name, basename(argv[0]), sizeof(program_base_name) - 1);
-    program_base_name[sizeof(program_base_name) - 1] = '\0';
-    program_name = program_base_name;
+    program_name = basename(argv[0]);
 
     /* Get the current process ID */
     cpulimit_pid = getpid();
