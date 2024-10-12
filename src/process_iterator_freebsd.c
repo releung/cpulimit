@@ -42,14 +42,20 @@
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
 {
-    static char errbuf[_POSIX2_LINE_MAX];
+    char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
+    if (errbuf == NULL)
+    {
+        exit(1);
+    }
     it->i = 0;
     /* Open the kvm interface, get a descriptor */
     if ((it->kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf)) == NULL)
     {
         fprintf(stderr, "kvm_openfiles: %s\n", errbuf);
+        free(errbuf);
         return -1;
     }
+    free(errbuf);
     /* Get the list of processes. */
     if ((it->procs = kvm_getprocs(it->kd, KERN_PROC_PROC, 0, &it->count)) == NULL)
     {
@@ -94,13 +100,19 @@ static pid_t _getppid_of(kvm_t *kd, pid_t pid)
 pid_t getppid_of(pid_t pid)
 {
     pid_t ppid;
-    static char errbuf[_POSIX2_LINE_MAX];
+    char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
+    if (errbuf == NULL)
+    {
+        exit(1);
+    }
     kvm_t *kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
     if (kd == NULL)
     {
         fprintf(stderr, "kvm_openfiles: %s\n", errbuf);
+        free(errbuf);
         return (pid_t)(-1);
     }
+    free(errbuf);
     ppid = _getppid_of(kd, pid);
     kvm_close(kd);
     return ppid;
@@ -120,13 +132,19 @@ static int _is_child_of(kvm_t *kd, pid_t child_pid, pid_t parent_pid)
 int is_child_of(pid_t child_pid, pid_t parent_pid)
 {
     int ret;
-    static char errbuf[_POSIX2_LINE_MAX];
+    char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
+    if (errbuf == NULL)
+    {
+        exit(1);
+    }
     kvm_t *kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
     if (kd == NULL)
     {
         fprintf(stderr, "kvm_openfiles: %s\n", errbuf);
+        free(errbuf);
         return (pid_t)(-1);
     }
+    free(errbuf);
     ret = _is_child_of(kd, child_pid, parent_pid);
     kvm_close(kd);
     return ret;
