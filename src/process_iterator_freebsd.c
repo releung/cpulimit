@@ -42,12 +42,14 @@
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
 {
+    struct kinfo_proc *procs;
     char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
     if (errbuf == NULL)
     {
         exit(1);
     }
     it->i = 0;
+    it->procs = NULL;
     /* Open the kvm interface, get a descriptor */
     if ((it->kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf)) == NULL)
     {
@@ -57,11 +59,15 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     }
     free(errbuf);
     /* Get the list of processes. */
-    if ((it->procs = kvm_getprocs(it->kd, KERN_PROC_PROC, 0, &it->count)) == NULL)
+    if ((procs = kvm_getprocs(it->kd, KERN_PROC_PROC, 0, &it->count)) == NULL)
     {
         kvm_close(it->kd);
         return -1;
     }
+    it->procs = (struct kinfo_proc *)malloc(sizeof(struct kinfo_proc) * it->count);
+    if (it->procs == NULL)
+        exit(1);
+    memcpy(it->procs, procs, sizeof(struct kinfo_proc) * it->count);
     it->filter = filter;
     return 0;
 }
@@ -200,6 +206,8 @@ int get_next_process(struct process_iterator *it, struct process *p)
 
 int close_process_iterator(struct process_iterator *it)
 {
+    free(it->procs);
+    it->procs = NULL;
     if (kvm_close(it->kd) == -1)
     {
         fprintf(stderr, "kvm_getprocs: %s\n", kvm_geterr(it->kd));
