@@ -100,12 +100,13 @@ static pid_t _getppid_of(kvm_t *kd, pid_t pid)
 pid_t getppid_of(pid_t pid)
 {
     pid_t ppid;
+    kvm_t *kd;
     char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
     if (errbuf == NULL)
     {
         exit(1);
     }
-    kvm_t *kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
+    kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
     if (kd == NULL)
     {
         fprintf(stderr, "kvm_openfiles: %s\n", errbuf);
@@ -132,12 +133,13 @@ static int _is_child_of(kvm_t *kd, pid_t child_pid, pid_t parent_pid)
 int is_child_of(pid_t child_pid, pid_t parent_pid)
 {
     int ret;
+    kvm_t *kd;
     char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
     if (errbuf == NULL)
     {
         exit(1);
     }
-    kvm_t *kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
+    kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
     if (kd == NULL)
     {
         fprintf(stderr, "kvm_openfiles: %s\n", errbuf);
