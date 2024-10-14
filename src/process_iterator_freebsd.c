@@ -46,6 +46,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
     if (errbuf == NULL)
     {
+        fprintf(stderr, "malloc: %s\n", strerror(errno));
         exit(1);
     }
     it->i = 0;
@@ -160,7 +161,7 @@ int is_child_of(pid_t child_pid, pid_t parent_pid)
 
 int get_next_process(struct process_iterator *it, struct process *p)
 {
-    if (it->i == it->count)
+    if (it->i >= it->count)
     {
         return -1;
     }
@@ -176,11 +177,11 @@ int get_next_process(struct process_iterator *it, struct process *p)
     }
     while (it->i < it->count)
     {
-        struct kinfo_proc *kproc = &(it->procs[it->i]);
+        struct kinfo_proc *kproc = it->procs + it->i;
         if (kproc->ki_flag & P_SYSTEM)
         {
-            /* skip system processes */
             it->i++;
+            /* skip system processes */
             continue;
         }
         if (it->filter->pid != 0 && it->filter->include_children)
@@ -210,7 +211,7 @@ int close_process_iterator(struct process_iterator *it)
     it->procs = NULL;
     if (kvm_close(it->kd) == -1)
     {
-        perror("kvm_close");
+        fprintf(stderr, "kvm_close: %s\n", strerror(errno));
         return -1;
     }
     return 0;

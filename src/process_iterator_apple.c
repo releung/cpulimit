@@ -53,7 +53,7 @@ static int unique_nonzero_pids(pid_t *arr_in, int len_in, pid_t *arr_out)
     for (i = 0; i < len_in; i++)
     {
         int found = 0;
-        if (source[i] == 0)
+        if (source[i] == (pid_t)0)
             continue;
         for (j = 0; !found && j < len_out; j++)
         {
@@ -68,7 +68,7 @@ static int unique_nonzero_pids(pid_t *arr_in, int len_in, pid_t *arr_out)
     {
         free(source);
     }
-    return len_out - 1;
+    return len_out;
 }
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
@@ -89,6 +89,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     if ((it->count = proc_listpids(PROC_ALL_PIDS, 0, it->pidlist, it->count)) <= 0)
     {
         fprintf(stderr, "proc_listpids: %s\n", strerror(errno));
+        free(it->pidlist);
         return -1;
     }
     it->count = unique_nonzero_pids(it->pidlist, it->count, it->pidlist);
@@ -118,9 +119,9 @@ static int get_process_pti(pid_t pid, struct proc_taskallinfo *ti)
         }
         return -1;
     }
-    else if (bytes < (int)sizeof(ti))
+    else if (bytes < (int)sizeof(*ti))
     {
-        fprintf(stderr, "proc_pidinfo: too few bytes; expected %lu, got %d\n", (unsigned long)sizeof(ti), bytes);
+        fprintf(stderr, "proc_pidinfo: too few bytes; expected %lu, got %d\n", (unsigned long)sizeof(*ti), bytes);
         return -1;
     }
     return 0;
@@ -151,7 +152,7 @@ int is_child_of(pid_t child_pid, pid_t parent_pid)
 
 int get_next_process(struct process_iterator *it, struct process *p)
 {
-    if (it->i == it->count)
+    if (it->i >= it->count)
         return -1;
     if (it->filter->pid != 0 && !it->filter->include_children)
     {
