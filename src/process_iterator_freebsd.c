@@ -210,7 +210,7 @@ int close_process_iterator(struct process_iterator *it)
     it->procs = NULL;
     if (kvm_close(it->kd) == -1)
     {
-        fprintf(stderr, "kvm_getprocs: %s\n", kvm_geterr(it->kd));
+        perror("kvm_close");
         return -1;
     }
     return 0;
