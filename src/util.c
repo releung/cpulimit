@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#if defined(__APPLE__) || defined(__FreeBSD__)
+#include <sys/sysctl.h>
+#endif
 #include "util.h"
 
 #ifdef __IMPL_BASENAME
@@ -64,21 +67,29 @@ int get_ncpu(void)
 pid_t get_pid_max(void)
 {
 #if defined(__linux__)
-    /* read /proc/sys/kernel/pid_max */
     long pid_max = -1;
     FILE *fd;
     if ((fd = fopen("/proc/sys/kernel/pid_max", "r")) != NULL)
     {
         if (fscanf(fd, "%ld", &pid_max) != 1)
+        {
+            perror("fscanf");
             pid_max = -1;
+        }
         fclose(fd);
     }
     return (pid_t)pid_max;
-#elif defined(__FreeBSD__)
-    return (pid_t)99999;
-#elif defined(__APPLE__)
-    return (pid_t)99998;
+#elif defined(__APPLE__) || defined(__FreeBSD__)
+    int max_proc;
+    size_t size = sizeof(max_proc);
+    if (sysctlbyname("kern.maxproc", &max_proc, &size, NULL, 0) == -1)
+    {
+        perror("sysctl");
+        return (pid_t)-1;
+    }
+    return (pid_t)max_proc;
 #else
+    fprintf(stderr, "Unsupported OS\n");
     return (pid_t)-1;
 #endif
 }
