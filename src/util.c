@@ -49,17 +49,21 @@ void increase_priority(void)
 /* Get the number of CPUs */
 int get_ncpu(void)
 {
-    int ncpu;
+    int ncpu = -1;
 #if defined(_SC_NPROCESSORS_ONLN)
     ncpu = sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined(__APPLE__)
-    int mib[2] = {CTL_HW, HW_NCPU};
+    int mib[2] = {CTL_HW, HW_AVAILCPU};
+    size_t len = sizeof(ncpu);
+    sysctl(mib, 2, &ncpu, &len, NULL, 0);
+#elif defined(__FreeBSD__)
+    int mib[2]{CTL_HW, HW_NCPU};
     size_t len = sizeof(ncpu);
     sysctl(mib, 2, &ncpu, &len, NULL, 0);
 #elif defined(_GNU_SOURCE)
     ncpu = get_nprocs();
 #else
-    ncpu = -1;
+#error "Platform not supported"
 #endif
     return ncpu;
 }
