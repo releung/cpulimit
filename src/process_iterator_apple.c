@@ -34,65 +34,30 @@
 #include <string.h>
 #include "process_iterator.h"
 
-static int unique_nonzero_pids(pid_t *arr_in, int len_in, pid_t *arr_out)
-{
-    pid_t *source = arr_in;
-    int len_out = 0;
-    int i, j;
-    if (arr_out == NULL)
-        return -1;
-    if (arr_in == arr_out)
-    {
-        source = (pid_t *)malloc(sizeof(pid_t) * len_in);
-        if (source == NULL)
-        {
-            exit(-1);
-        }
-        memcpy(source, arr_in, sizeof(pid_t) * len_in);
-    }
-    for (i = 0; i < len_in; i++)
-    {
-        int found = 0;
-        if (source[i] == (pid_t)0)
-            continue;
-        for (j = 0; !found && j < len_out; j++)
-        {
-            found = (source[i] == arr_out[j]);
-        }
-        if (!found)
-        {
-            arr_out[len_out++] = source[i];
-        }
-    }
-    if (arr_in == arr_out)
-    {
-        free(source);
-    }
-    return len_out;
-}
-
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
 {
+    int bufsize;
     it->i = 0;
     /* Find out how much to allocate for it->pidlist */
-    if ((it->count = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0)) <= 0)
+    if ((bufsize = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0)) <= 0)
     {
         fprintf(stderr, "proc_listpids: %s\n", strerror(errno));
         return -1;
     }
     /* Allocate and populate it->pidlist */
-    if ((it->pidlist = (pid_t *)malloc((it->count) * sizeof(pid_t))) == NULL)
+    if ((it->pidlist = (pid_t *)malloc(bufsize)) == NULL)
     {
         fprintf(stderr, "malloc: %s\n", strerror(errno));
         exit(-1);
     }
-    if ((it->count = proc_listpids(PROC_ALL_PIDS, 0, it->pidlist, it->count)) <= 0)
+    if ((bufsize = proc_listpids(PROC_ALL_PIDS, 0, it->pidlist, bufsize)) <= 0)
     {
         fprintf(stderr, "proc_listpids: %s\n", strerror(errno));
         free(it->pidlist);
         return -1;
     }
-    it->count = unique_nonzero_pids(it->pidlist, it->count, it->pidlist);
+    /* bufsize / sizeof(pid_t) gives the number of processes */
+    it->count = bufsize / sizeof(pid_t);
     it->filter = filter;
     return 0;
 }
@@ -182,8 +147,6 @@ int get_next_process(struct process_iterator *it, struct process *p)
         {
             it->i++;
             if (pti2proc(&ti, p) != 0)
-                continue;
-            if (p->pid != it->pidlist[it->i - 1]) /* I don't know why this can happen */
                 continue;
             if (p->pid != it->filter->pid && !is_child_of(p->pid, it->filter->pid))
                 continue;
