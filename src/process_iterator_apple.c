@@ -74,11 +74,10 @@ static int pti2proc(struct proc_taskallinfo *ti, struct process *process)
 
 static int get_process_pti(pid_t pid, struct proc_taskallinfo *ti)
 {
-    int bytes;
-    bytes = proc_pidinfo(pid, PROC_PIDTASKALLINFO, 0, ti, sizeof(*ti));
+    int bytes = proc_pidinfo(pid, PROC_PIDTASKALLINFO, 0, ti, sizeof(*ti));
     if (bytes <= 0)
     {
-        if (!(errno & (EPERM | ESRCH)))
+        if (errno != EPERM && errno != ESRCH)
         {
             fprintf(stderr, "proc_pidinfo: %s\n", strerror(errno));
         }
