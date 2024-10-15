@@ -93,7 +93,6 @@ pid_t get_pid_max(void)
     }
     return (pid_t)max_proc;
 #else
-    fprintf(stderr, "Unsupported OS\n");
-    return (pid_t)-1;
+#error "Platform not supported"
 #endif
 }
