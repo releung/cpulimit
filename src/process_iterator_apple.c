@@ -32,12 +32,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include "process_iterator.h"
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
 {
     int bufsize;
     it->i = 0;
+    assert(sizeof(int) == sizeof(pid_t));
     /* Find out how much to allocate for it->pidlist */
     if ((bufsize = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0)) <= 0)
     {
