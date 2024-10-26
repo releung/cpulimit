@@ -460,15 +460,9 @@ int main(int argc, char *argv[])
     command_mode = optind < argc;
 
     /* Ensure exactly one target process (pid, executable, or command) is specified */
-    if (exe_ok + pid_ok + command_mode == 0)
+    if (exe_ok + pid_ok + command_mode != 1)
     {
-        fprintf(stderr, "Error: You must specify one target process, either by name, pid, or command line\n");
-        print_usage(stderr, 1);
-        exit(1);
-    }
-    if (exe_ok + pid_ok + command_mode > 1)
-    {
-        fprintf(stderr, "Error: You must specify exactly one target process, either by name, pid, or command line\n");
+        fprintf(stderr, "Error: You must specify exactly one target process by name, pid, or command line\n");
         print_usage(stderr, 1);
         exit(1);
     }
