@@ -175,4 +175,18 @@ int get_ncpu(void);
  */
 pid_t get_pid_max(void);
 
+#ifndef STATIC_ASSERT
+/* C++11 and above, C23 and above */
+#if (defined(__cplusplus) && __cplusplus >= 201103L) || \
+    (defined(__STDC__) && __STDC_VERSION__ >= 202311L)
+#define STATIC_ASSERT(condition, message) static_assert(condition, message)
+/* C11 and above */
+#elif defined(__STDC__) && __STDC_VERSION__ >= 201112L
+#define STATIC_ASSERT(condition, message) _Static_assert(condition, message)
+/* C89/C99/C++98 */
+#else
+#define STATIC_ASSERT(condition, message) typedef char static_assertion_failed[(condition) ? 1 : -1]
+#endif
+#endif
+
 #endif

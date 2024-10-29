@@ -34,12 +34,15 @@
 #include <string.h>
 #include <assert.h>
 #include "process_iterator.h"
+#include "util.h"
+
+STATIC_ASSERT(sizeof(pid_t) == sizeof(int) && ((pid_t)-1 < 0) == ((int)-1 < 0),
+              "pid_t is not equivalent to int.");
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
 {
     int bufsize;
     it->i = 0;
-    assert(sizeof(int) == sizeof(pid_t));
     /* Find out how much to allocate for it->pidlist */
     if ((bufsize = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0)) <= 0)
     {
