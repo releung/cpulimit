@@ -35,7 +35,6 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/vfs.h>
-#include <linux/magic.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -43,8 +42,8 @@
 
 static int check_proc(void)
 {
-    struct statfs mnt;
-    return statfs("/proc", &mnt) == 0 && mnt.f_type == PROC_SUPER_MAGIC;
+    struct stat statbuf;
+    return stat("/proc", &statbuf) == 0 && S_ISDIR(statbuf.st_mode);
 }
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
