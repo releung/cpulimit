@@ -70,7 +70,8 @@ pid_t find_process_by_name(char *process_name)
     while (get_next_process(&it, proc) != -1)
     {
         /* process found */
-        if (strncmp(basename(proc->command), process_basename, sizeof(proc->command)) == 0)
+        const char *cmd_basename = basename(proc->command);
+        if (strncmp(cmd_basename, process_basename, sizeof(proc->command)) == 0)
         {
             if (pid < 0 || is_child_of(pid, proc->pid))
             {
