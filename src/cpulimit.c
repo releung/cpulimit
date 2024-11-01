@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
 {
     /* Variables to store user-provided arguments */
     char *exe = NULL;
-    int perclimit = 0;
+    double perclimit = 0.0;
     int exe_ok = 0;
     int pid_ok = 0;
     int limit_ok = 0;
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
             break;
         case 'l':
             /* Store the CPU limit percentage provided by the user */
-            perclimit = atoi(optarg);
+            perclimit = atof(optarg);
             limit_ok = 1;
             break;
         case 'v':
