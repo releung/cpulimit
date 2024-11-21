@@ -65,10 +65,10 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
         kvm_close(it->kd);
         return -1;
     }
-    it->procs = (struct kinfo_proc *)malloc(sizeof(struct kinfo_proc) * it->count);
+    it->procs = (struct kinfo_proc *)malloc(sizeof(struct kinfo_proc) * (size_t)it->count);
     if (it->procs == NULL)
         exit(1);
-    memcpy(it->procs, procs, sizeof(struct kinfo_proc) * it->count);
+    memcpy(it->procs, procs, sizeof(struct kinfo_proc) * (size_t)it->count);
     it->filter = filter;
     return 0;
 }
@@ -79,9 +79,9 @@ static int kproc2proc(kvm_t *kd, struct kinfo_proc *kproc, struct process *proc)
     size_t len_max;
     proc->pid = kproc->ki_pid;
     proc->ppid = kproc->ki_ppid;
-    proc->cputime = kproc->ki_runtime / 1000.0;
+    proc->cputime = (double)kproc->ki_runtime / 1000.0;
     len_max = sizeof(proc->command) - 1;
-    if ((args = kvm_getargv(kd, kproc, len_max)) == NULL)
+    if ((args = kvm_getargv(kd, kproc, (int)len_max)) == NULL)
         return -1;
     strncpy(proc->command, args[0], len_max);
     proc->command[len_max] = '\0';

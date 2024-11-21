@@ -51,7 +51,7 @@ int get_ncpu(void)
 {
     int ncpu = -1;
 #if defined(_SC_NPROCESSORS_ONLN)
-    ncpu = sysconf(_SC_NPROCESSORS_ONLN);
+    ncpu = (int)sysconf(_SC_NPROCESSORS_ONLN);
 #elif defined(__APPLE__)
     int mib[2] = {CTL_HW, HW_AVAILCPU};
     size_t len = sizeof(ncpu);

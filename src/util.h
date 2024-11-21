@@ -111,11 +111,11 @@ const char *__basename(const char *path);
  * Converts nanoseconds to a timespec structure
  */
 #ifndef nsec2timespec
-#define nsec2timespec(nsec, t)                             \
-    do                                                     \
-    {                                                      \
-        (t)->tv_sec = (time_t)((nsec) / 1e9);              \
-        (t)->tv_nsec = (long)((nsec) - (t)->tv_sec * 1e9); \
+#define nsec2timespec(nsec, t)                                     \
+    do                                                             \
+    {                                                              \
+        (t)->tv_sec = (time_t)((nsec) / 1e9);                      \
+        (t)->tv_nsec = (long)((nsec) - (double)(t)->tv_sec * 1e9); \
     } while (0)
 #endif
 
@@ -157,7 +157,7 @@ int __get_time(struct timespec *ts);
  */
 #ifndef timediff_in_ms
 #define timediff_in_ms(t1, t2) \
-    (((t1)->tv_sec - (t2)->tv_sec) * 1e3 + ((t1)->tv_nsec - (t2)->tv_nsec) / 1e6)
+    ((double)((t1)->tv_sec - (t2)->tv_sec) * 1e3 + (double)((t1)->tv_nsec - (t2)->tv_nsec) / 1e6)
 #endif
 
 /**

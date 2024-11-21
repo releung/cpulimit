@@ -488,7 +488,7 @@ int main(int argc, char *argv[])
         /* Executable file */
         const char *cmd = argv[optind];
         /* Command line arguments */
-        char **cmd_args = (char **)malloc((argc - optind + 1) * sizeof(char *));
+        char **cmd_args = (char **)malloc((size_t)(argc - optind + 1) * sizeof(char *));
         if (cmd_args == NULL)
             exit(2);
 

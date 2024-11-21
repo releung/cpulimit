@@ -131,7 +131,7 @@ struct list_node *xlocate_node(struct list *l, const void *elem, int offset, int
     tmp = l->first;
     while (tmp != NULL)
     {
-        if (!memcmp((char *)tmp->data + offset, elem, length == 0 ? l->keysize : length))
+        if (!memcmp((char *)tmp->data + offset, elem, (size_t)(length == 0 ? l->keysize : length)))
             return (tmp);
         tmp = tmp->next;
     }

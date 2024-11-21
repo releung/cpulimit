@@ -50,7 +50,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
         return -1;
     }
     /* Allocate and populate it->pidlist */
-    if ((it->pidlist = (pid_t *)malloc(bufsize)) == NULL)
+    if ((it->pidlist = (pid_t *)malloc((size_t)bufsize)) == NULL)
     {
         fprintf(stderr, "malloc: %s\n", strerror(errno));
         exit(-1);
@@ -62,17 +62,17 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
         return -1;
     }
     /* bufsize / sizeof(pid_t) gives the number of processes */
-    it->count = bufsize / sizeof(pid_t);
+    it->count = bufsize / (int)sizeof(pid_t);
     it->filter = filter;
     return 0;
 }
 
 static int pti2proc(struct proc_taskallinfo *ti, struct process *process)
 {
-    process->pid = ti->pbsd.pbi_pid;
-    process->ppid = ti->pbsd.pbi_ppid;
+    process->pid = (pid_t)ti->pbsd.pbi_pid;
+    process->ppid = (pid_t)ti->pbsd.pbi_ppid;
     process->cputime = ti->ptinfo.pti_total_user / 1e6 + ti->ptinfo.pti_total_system / 1e6;
-    if (proc_pidpath(ti->pbsd.pbi_pid, process->command, sizeof(process->command)) <= 0)
+    if (proc_pidpath((int)ti->pbsd.pbi_pid, process->command, sizeof(process->command)) <= 0)
         return -1;
     return 0;
 }
@@ -101,7 +101,7 @@ pid_t getppid_of(pid_t pid)
     struct proc_taskallinfo ti;
     if (get_process_pti(pid, &ti) == 0)
     {
-        return ti.pbsd.pbi_ppid;
+        return (pid_t)ti.pbsd.pbi_ppid;
     }
     return (pid_t)(-1);
 }
