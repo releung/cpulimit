@@ -250,9 +250,13 @@ static void limit_process(pid_t pid, double limit, int include_children)
         {
             /* Print CPU usage statistics every 10 cycles */
             if (c % 200 == 0)
-                printf("\n    %%CPU    work quantum    sleep quantum    active rate\n");
+                printf("\n%9s%16s%16s%14s\n",
+                       "%CPU", "work quantum", "sleep quantum", "active rate");
+
             if (c % 10 == 0 && c > 0)
-                printf("%7.2f%%    %9.0f us    %10.0f us    %10.2f%%\n", pcpu * 100, twork_total_nsec / 1000, tsleep_total_nsec / 1000, workingrate * 100);
+                printf("%8.2f%%%13.0f us%13.0f us%13.2f%%\n",
+                       pcpu * 100, twork_total_nsec / 1000,
+                       tsleep_total_nsec / 1000, workingrate * 100);
         }
 
         /* Resume processes in the group */
