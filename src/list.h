@@ -19,9 +19,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-#ifndef __LIST__
-
-#define __LIST__
+#ifndef __LIST_H
+#define __LIST_H
 
 /**
  * Structure representing a node in a doubly linked list.
