@@ -22,11 +22,14 @@
 #ifndef __PROCESS_ITERATOR_H
 #define __PROCESS_ITERATOR_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <sys/types.h>
 #include <limits.h>
 #ifdef __linux__
 #include <dirent.h>
-#include <linux/limits.h>
 #endif
 #ifdef __FreeBSD__
 #include <kvm.h>

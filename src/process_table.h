@@ -1,6 +1,10 @@
 #ifndef __PROCESS_TABLE_H
 #define __PROCESS_TABLE_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <sys/types.h>
 #include "process_iterator.h"
 #include "list.h"

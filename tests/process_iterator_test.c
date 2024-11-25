@@ -31,9 +31,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <limits.h>
-#ifdef __linux__
-#include <linux/limits.h>
-#endif
 
 #include "../src/process_iterator.h"
 #include "../src/process_group.h"
