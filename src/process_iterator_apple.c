@@ -27,6 +27,10 @@
 #ifndef __PROCESS_ITERATOR_APPLE_C
 #define __PROCESS_ITERATOR_APPLE_C
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #include <errno.h>
 #include <libproc.h>
 #include <stdio.h>

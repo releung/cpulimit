@@ -21,6 +21,10 @@
 
 /* See this link to port to other systems: http://www.steve.org.uk/Reference/Unix/faq_8.html#SEC85 */
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #if defined(__linux__)
 
 #include "process_iterator_linux.c"

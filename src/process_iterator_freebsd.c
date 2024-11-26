@@ -24,6 +24,10 @@
 #ifndef __PROCESS_ITERATOR_FREEBSD_C
 #define __PROCESS_ITERATOR_FREEBSD_C
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 #if defined(__STRICT_ANSI__) || !defined(__STDC_VERSION__) || (__STDC_VERSION__ < 199901L)
 #define inline
 #endif

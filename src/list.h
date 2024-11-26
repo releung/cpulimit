@@ -22,6 +22,10 @@
 #ifndef __LIST_H
 #define __LIST_H
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+
 /**
  * Structure representing a node in a doubly linked list.
  */
