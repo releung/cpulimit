@@ -10,12 +10,11 @@
 void process_table_init(struct process_table *pt, int hashsize)
 {
     pt->hashsize = hashsize;
-    pt->table = (struct list **)malloc(sizeof(struct list *) * (size_t)pt->hashsize);
+    pt->table = (struct list **)calloc((size_t)pt->hashsize, sizeof(struct list *));
     if (pt->table == NULL)
     {
         exit(1);
     }
-    memset(pt->table, 0, sizeof(struct list *) * (size_t)pt->hashsize);
 }
 
 static int proc_hash(const struct process_table *pt, const struct process *p)
