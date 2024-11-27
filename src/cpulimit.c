@@ -101,12 +101,12 @@ static void sig_handler(int sig)
 }
 
 /**
- * Prints the usage information for the program.
+ * Prints the usage information for the program and exit.
  *
  * @param stream The file stream to write the usage information to (e.g., stdout).
  * @param exit_code The exit code to return after printing usage.
  */
-static void print_usage(FILE *stream, int exit_code)
+static void print_usage_and_exit(FILE *stream, int exit_code)
 {
     /* Print the usage message along with available options */
     fprintf(stream, "Usage: %s [OPTIONS...] TARGET\n", program_name);
@@ -418,11 +418,11 @@ int main(int argc, char *argv[])
             break;
         case 'h':
             /* Print usage information and exit */
-            print_usage(stdout, 1);
+            print_usage_and_exit(stdout, 1);
             break;
         case '?':
             /* Print usage information on invalid option */
-            print_usage(stderr, 1);
+            print_usage_and_exit(stderr, 1);
             break;
         case -1:
             /* No more options to process */
@@ -436,7 +436,7 @@ int main(int argc, char *argv[])
     if (pid_ok && (pid <= 1 || pid >= get_pid_max()))
     {
         fprintf(stderr, "Error: Invalid value for argument PID\n");
-        print_usage(stderr, 1);
+        print_usage_and_exit(stderr, 1);
     }
     if (pid != 0)
     {
@@ -448,7 +448,7 @@ int main(int argc, char *argv[])
     if (!limit_ok)
     {
         fprintf(stderr, "Error: You must specify a cpu limit percentage\n");
-        print_usage(stderr, 1);
+        print_usage_and_exit(stderr, 1);
     }
 
     /* Calculate the CPU limit as a fraction */
@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
     if (limit < 0 || limit > NCPU)
     {
         fprintf(stderr, "Error: limit must be in the range 0-%d00\n", NCPU);
-        print_usage(stderr, 1);
+        print_usage_and_exit(stderr, 1);
     }
 
     /* Determine if a command was provided */
@@ -466,7 +466,7 @@ int main(int argc, char *argv[])
     if (exe_ok + pid_ok + command_mode != 1)
     {
         fprintf(stderr, "Error: You must specify exactly one target process by name, pid, or command line\n");
-        print_usage(stderr, 1);
+        print_usage_and_exit(stderr, 1);
     }
 
     /* Set up signal handlers for SIGINT and SIGTERM */
