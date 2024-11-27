@@ -437,7 +437,6 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "Error: Invalid value for argument PID\n");
         print_usage(stderr, 1);
-        exit(1);
     }
     if (pid != 0)
     {
@@ -450,7 +449,6 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "Error: You must specify a cpu limit percentage\n");
         print_usage(stderr, 1);
-        exit(1);
     }
 
     /* Calculate the CPU limit as a fraction */
@@ -459,7 +457,6 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "Error: limit must be in the range 0-%d00\n", NCPU);
         print_usage(stderr, 1);
-        exit(1);
     }
 
     /* Determine if a command was provided */
@@ -470,7 +467,6 @@ int main(int argc, char *argv[])
     {
         fprintf(stderr, "Error: You must specify exactly one target process by name, pid, or command line\n");
         print_usage(stderr, 1);
-        exit(1);
     }
 
     /* Set up signal handlers for SIGINT and SIGTERM */
