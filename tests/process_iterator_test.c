@@ -246,8 +246,9 @@ static void test_find_process_by_pid(void)
 
 static void test_find_process_by_name(void)
 {
+    char empty_name[] = "";
     assert(find_process_by_name(command) == getpid());
-    assert(find_process_by_name("") == 0);
+    assert(find_process_by_name(empty_name) == 0);
 }
 
 static void test_getppid_of(void)
