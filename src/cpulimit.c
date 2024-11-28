@@ -425,7 +425,7 @@ int main(int argc, char *argv[])
             break;
         case 'h':
             /* Print usage information and exit */
-            print_usage_and_exit(stdout, 1);
+            print_usage_and_exit(stdout, 0);
             break;
         case '?':
             /* Print usage information on invalid option */
