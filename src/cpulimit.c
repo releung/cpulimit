@@ -387,6 +387,13 @@ int main(int argc, char *argv[])
     do
     {
         next_option = getopt_long(argc, argv, short_options, long_options, &option_index);
+        if (strchr("pel", next_option) != NULL && optarg[0] == '-')
+        {
+            fprintf(stderr, "%s: option '%c' requires an argument.\n",
+                    argv[0], next_option);
+            print_usage_and_exit(stderr, 1);
+        }
+
         switch (next_option)
         {
         case 'p':
