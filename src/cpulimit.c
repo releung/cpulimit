@@ -360,6 +360,7 @@ int main(int argc, char *argv[])
         {0, 0, 0, 0}};
 
     double limit;
+    char *endptr;
 
     /* Set waiting time between process searches */
     struct timespec wait_time = {2, 0};
@@ -398,8 +399,8 @@ int main(int argc, char *argv[])
         {
         case 'p':
             /* Store the PID provided by the user */
-            pid = (pid_t)atol(optarg);
-            pid_ok = 1;
+            pid = (pid_t)strtol(optarg, &endptr, 10);
+            pid_ok = endptr != optarg && *endptr == '\0';
             break;
         case 'e':
             /* Store the executable name provided by the user */
@@ -408,8 +409,8 @@ int main(int argc, char *argv[])
             break;
         case 'l':
             /* Store the CPU limit percentage provided by the user */
-            perclimit = atof(optarg);
-            limit_ok = 1;
+            perclimit = strtod(optarg, &endptr);
+            limit_ok = endptr != optarg && *endptr == '\0';
             break;
         case 'v':
             /* Enable verbose mode */
