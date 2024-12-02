@@ -46,7 +46,7 @@
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
 {
-    struct kinfo_proc *procs;
+    const struct kinfo_proc *procs;
     char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
     if (errbuf == NULL)
     {

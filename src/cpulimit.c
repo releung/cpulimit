@@ -264,7 +264,7 @@ static void limit_process(pid_t pid, double limit, int include_children)
         while (node != NULL)
         {
             struct list_node *next_node = node->next;
-            struct process *proc = (struct process *)(node->data);
+            const struct process *proc = (const struct process *)(node->data);
             if (kill(proc->pid, SIGCONT) != 0)
             {
                 /* If the process is dead, remove it from the group */
@@ -286,7 +286,7 @@ static void limit_process(pid_t pid, double limit, int include_children)
             while (node != NULL)
             {
                 struct list_node *next_node = node->next;
-                struct process *proc = (struct process *)(node->data);
+                const struct process *proc = (const struct process *)(node->data);
                 if (kill(proc->pid, SIGSTOP) != 0)
                 {
                     /* If the process is dead, remove it from the group */

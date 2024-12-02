@@ -183,7 +183,7 @@ static int is_numeric(const char *str)
 
 int get_next_process(struct process_iterator *it, struct process *p)
 {
-    struct dirent *dit = NULL;
+    const struct dirent *dit = NULL;
 
     if (it->dip == NULL)
     {
