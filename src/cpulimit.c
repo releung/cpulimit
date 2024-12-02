@@ -578,13 +578,9 @@ int main(int argc, char *argv[])
         {
             /* Search for the process by PID */
             ret = find_process_by_pid(pid);
-            if (ret == 0)
+            if (ret <= 0)
             {
-                printf("No process found\n");
-            }
-            else if (ret < 0)
-            {
-                printf("Process found but you aren't allowed to control it\n");
+                printf("No process found or you aren't allowed to control it\n");
             }
         }
         else
