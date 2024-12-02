@@ -23,6 +23,7 @@
 #define _GNU_SOURCE
 #endif
 
+#undef NDEBUG
 #include <assert.h>
 #include <signal.h>
 #include <stdio.h>
