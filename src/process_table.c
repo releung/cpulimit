@@ -72,7 +72,7 @@ int process_table_del(struct process_table *pt, const struct process *p)
     node = (struct list_node *)locate_node(pt->table[idx], p);
     if (node == NULL)
     {
-        return 2; /* nothing to delete */
+        return 1; /* nothing to delete */
     }
     delete_node(pt->table[idx], node);
     return 0;

@@ -60,7 +60,7 @@ void process_table_add(struct process_table *pt, struct process *p);
  *
  * @param pt The process table to delete the process from
  * @param p The process to delete
- * @return 0 if deletion is successful, 1 if process not found, 2 if node not found
+ * @return 0 if deletion is successful, 1 if process not found
  */
 int process_table_del(struct process_table *pt, const struct process *p);
 
@@ -69,7 +69,7 @@ int process_table_del(struct process_table *pt, const struct process *p);
  *
  * @param pt The process table to delete the process from
  * @param pid The PID of the process to delete
- * @return 0 if deletion is successful, 1 if process not found, 2 if node not found
+ * @return 0 if deletion is successful, 1 if process not found
  */
 int process_table_del_pid(struct process_table *pt, pid_t pid);
 

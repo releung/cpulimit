@@ -102,7 +102,7 @@ pid_t find_process_by_name(char *process_name);
  *
  * @param pgroup Pointer to the process group from which to remove the process.
  * @param pid The PID of the process to remove.
- * @return Result of the process table deletion operation.
+ * @return 0 if removal is successful, or 1 if process is not found.
  */
 int remove_process(struct process_group *pgroup, pid_t pid);
 
