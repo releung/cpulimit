@@ -36,39 +36,62 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 #include "process_iterator.h"
-#include "util.h"
-
-STATIC_ASSERT(sizeof(pid_t) == sizeof(int) && ((pid_t)-1 < 0) == ((int)-1 < 0),
-              "pid_t is not equivalent to int.");
 
 int init_process_iterator(struct process_iterator *it, struct process_filter *filter)
 {
-    int bufsize;
+    size_t len;
+    struct kinfo_proc *procs;
+    int i;
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
+
     it->i = 0;
-    /* Find out how much to allocate for it->pidlist */
-    if ((bufsize = proc_listpids(PROC_ALL_PIDS, 0, NULL, 0)) <= 0)
-    {
-        fprintf(stderr, "proc_listpids: %s\n", strerror(errno));
-        return -1;
-    }
-    /* Allocate and populate it->pidlist */
-    if ((it->pidlist = (pid_t *)malloc((size_t)bufsize)) == NULL)
-    {
-        fprintf(stderr, "malloc: %s\n", strerror(errno));
-        exit(-1);
-    }
-    if ((bufsize = proc_listpids(PROC_ALL_PIDS, 0, it->pidlist, bufsize)) <= 0)
-    {
-        fprintf(stderr, "proc_listpids: %s\n", strerror(errno));
-        free(it->pidlist);
-        return -1;
-    }
-    /* bufsize / sizeof(pid_t) gives the number of processes */
-    it->count = bufsize / (int)sizeof(pid_t);
+    it->pidlist = NULL;
     it->filter = filter;
-    return 0;
+
+    /* Get the size of all process information */
+    if (sysctl(mib, 4, NULL, &len, NULL, 0) < 0)
+    {
+        fprintf(stderr, "Failed to get process size: %s\n", strerror(errno));
+        exit(1); /* Exit on error */
+    }
+
+    /* Allocate memory to store process information */
+    procs = (struct kinfo_proc *)malloc(len);
+    if (procs == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed for process information: %s\n", strerror(errno));
+        exit(1); /* Exit on error */
+    }
+
+    /* Get process information */
+    if (sysctl(mib, 4, procs, &len, NULL, 0) < 0)
+    {
+        free(procs);
+        fprintf(stderr, "Failed to get process information: %s\n", strerror(errno));
+        exit(1); /* Exit on error */
+    }
+
+    /* Calculate the number of processes */
+    it->count = (int)(len / sizeof(struct kinfo_proc));
+    it->pidlist = (pid_t *)malloc((size_t)it->count * sizeof(pid_t)); /* Allocate PID array */
+    if (it->pidlist == NULL)
+    {
+        free(procs);
+        fprintf(stderr, "Memory allocation failed for PID list: %s\n", strerror(errno));
+        exit(1); /* Exit on error */
+    }
+
+    /* Fill the PID array */
+    for (i = 0; i < it->count; i++)
+    {
+        it->pidlist[i] = (pid_t)procs[i].kp_proc.p_pid;
+    }
+
+    free(procs);
+    return 0; /* Success */
 }
 
 static int pti2proc(struct proc_taskallinfo *ti, struct process *process)
