@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build:
-    name: build
+    name: Build on ${{ matrix.os }}
     permissions:
       contents: read
     strategy:
@@ -28,9 +28,11 @@ jobs:
           ref: master
           fetch-depth: 0
 
-      - name: Compile in macOS
-        if: ${{ startsWith( matrix.os, 'macos-' ) }}
+      - name: Compile and Test
         run: |
+          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
+            export LDFLAGS="$LDFLAGS -static"
+          fi
           make
           sudo ./tests/process_iterator_test
           random_file="$(mktemp $(printf 'X%.0s' $(seq 1 255)))"
@@ -38,51 +40,42 @@ jobs:
           echo "./tests/${random_file}"
           sudo ./tests/${random_file}
 
-      - name: Compile in Ubuntu
-        if: ${{ startsWith( matrix.os, 'ubuntu-' ) }}
-        run: |
-          make LDFLAGS="-static"
-          sudo ./tests/process_iterator_test
-          random_file="$(mktemp $(printf 'X%.0s' $(seq 1 255)))"
-          cp ./tests/process_iterator_test ./tests/${random_file}
-          echo "./tests/${random_file}"
-          sudo ./tests/${random_file}
-
-      - name: Upload
+      - name: Upload Artifacts
         uses: actions/upload-artifact@main
         with:
           name: cpulimit-${{ matrix.os }}
           path: src/cpulimit
 
   build-FreeBSD:
-    name: build-FreeBSD
+    name: Build on FreeBSD-${{ matrix.osver }}
     permissions:
       contents: read
     strategy:
       matrix:
-        osver: ['13.4', '14.1']
+        osver: ['13.4', '14.1', '15.0']
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@main
+      - name: Checkout
+        uses: actions/checkout@main
 
-    - name: Build in FreeBSD
-      uses: vmactions/freebsd-vm@v1
-      with:
-        release: ${{ matrix.osver }}
-        usesh: true
-        prepare: |
-          pkg install -y lang/gcc gmake sudo
-        run: |
-          gmake
-          sudo ./tests/process_iterator_test
-          random_file="$(mktemp $(printf 'X%.0s' $(seq 1 255)))"
-          cp ./tests/process_iterator_test ./tests/${random_file}
-          echo "./tests/${random_file}"
-          sudo ./tests/${random_file}
+      - name: Build on FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: ${{ matrix.osver }}
+          usesh: true
+          prepare: |
+            pkg install -y lang/gcc gmake sudo
+          run: |
+            gmake
+            sudo ./tests/process_iterator_test
+            random_file="$(mktemp $(printf 'X%.0s' $(seq 1 255)))"
+            cp ./tests/process_iterator_test ./tests/${random_file}
+            echo "./tests/${random_file}"
+            sudo ./tests/${random_file}
 
-    - name: Upload
-      uses: actions/upload-artifact@main
-      with:
-        name: cpulimit-FreeBSD-${{ matrix.osver }}
-        path: src/cpulimit
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@main
+        with:
+          name: cpulimit-FreeBSD-${{ matrix.osver }}
+          path: src/cpulimit
