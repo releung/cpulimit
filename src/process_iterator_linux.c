@@ -66,7 +66,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
 static int read_process_info(pid_t pid, struct process *p)
 {
     char statfile[32], exefile[32], state;
-    double utime, stime;
+    double usertime, systime;
     long ppid;
     FILE *fd;
     static double sc_clk_tck = -1.0;
@@ -93,7 +93,7 @@ static int read_process_info(pid_t pid, struct process *p)
         return -1;
     }
     if (fscanf(fd, "%*d (%*[^)]) %c %ld %*d %*d %*d %*d %*d %*d %*d %*d %*d %lf %lf",
-               &state, &ppid, &utime, &stime) != 4 ||
+               &state, &ppid, &usertime, &systime) != 4 ||
         strchr("ZXx", state) != NULL)
     {
         fclose(fd);
@@ -105,7 +105,7 @@ static int read_process_info(pid_t pid, struct process *p)
     {
         sc_clk_tck = (double)sysconf(_SC_CLK_TCK);
     }
-    p->cputime = (utime + stime) * 1000.0 / sc_clk_tck;
+    p->cputime = (usertime + systime) * 1000.0 / sc_clk_tck;
 
     return 0;
 }
