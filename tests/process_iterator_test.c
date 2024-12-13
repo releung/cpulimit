@@ -247,9 +247,46 @@ static void test_find_process_by_pid(void)
 
 static void test_find_process_by_name(void)
 {
-    char empty_name[] = "";
+    char *wrong_name;
+    size_t len;
+
+    wrong_name = (char *)malloc(PATH_MAX + 1);
+    assert(wrong_name != NULL);
+
+    /*
+     * 'command' is the name of the current process (equivalent to argv[0]).
+     * Verify that the find_process_by_name function can find the current process
+     * (PID should match the return value of getpid()).
+     */
     assert(find_process_by_name(command) == getpid());
-    assert(find_process_by_name(empty_name) == 0);
+
+    /*
+     * Test Case 1: Pass an empty string to find_process_by_name.
+     * Expectation: Should return 0 (process not found).
+     */
+    strcpy(wrong_name, "");
+    assert(find_process_by_name(wrong_name) == 0);
+
+    /*
+     * Test Case 2: Pass an incorrect process name by appending 'x'
+     * to the current process's name.
+     * Expectation: Should return 0 (process not found).
+     */
+    strcpy(wrong_name, command); /* Copy the current process's name */
+    strcat(wrong_name, "x");     /* Append 'x' to make it non-matching */
+    assert(find_process_by_name(wrong_name) == 0);
+
+    /*
+     * Test Case 3: Pass a copy of the current process's name with
+     * the last character removed.
+     * Expectation: Should return 0 (process not found).
+     */
+    strcpy(wrong_name, command); /* Copy the current process's name */
+    len = strlen(wrong_name);
+    wrong_name[len - 1] = '\0'; /* Remove the last character */
+    assert(find_process_by_name(wrong_name) == 0);
+
+    free(wrong_name);
 }
 
 static void test_getppid_of(void)
