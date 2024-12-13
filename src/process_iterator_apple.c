@@ -87,7 +87,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     /* Fill the PID array */
     for (i = 0; i < it->count; i++)
     {
-        it->pidlist[i] = (pid_t)procs[i].kp_proc.p_pid;
+        it->pidlist[i] = procs[i].kp_proc.p_pid;
     }
 
     free(procs);
