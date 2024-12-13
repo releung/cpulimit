@@ -58,6 +58,13 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
         exit(1); /* Exit on error */
     }
 
+    /*
+     * Double the size of the process information buffer
+     * to prevent buffer overflow caused by an increase
+     * in the number of processes.
+     */
+    len <<= 1;
+
     /* Allocate memory to store process information */
     procs = (struct kinfo_proc *)malloc(len);
     if (procs == NULL)
