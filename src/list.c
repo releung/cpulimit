@@ -50,7 +50,7 @@ struct list_node *add_elem(struct list *l, void *elem)
     struct list_node *newnode = (struct list_node *)malloc(sizeof(struct list_node));
     if (newnode == NULL)
     {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     newnode->data = elem;
     newnode->previous = l->last;

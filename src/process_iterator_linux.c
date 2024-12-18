@@ -51,7 +51,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     if (!check_proc())
     {
         fprintf(stderr, "procfs is not mounted!\nAborting\n");
-        exit(-2);
+        exit(EXIT_FAILURE);
     }
     /* open a directory stream to /proc directory */
     if ((it->dip = opendir("/proc")) == NULL)

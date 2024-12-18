@@ -63,7 +63,7 @@ pid_t find_process_by_name(char *process_name)
     const char *process_basename = basename(process_name);
     proc = (struct process *)malloc(sizeof(struct process));
     if (proc == NULL)
-        exit(1);
+        exit(EXIT_FAILURE);
     filter.pid = 0;
     filter.include_children = 0;
     init_process_iterator(&it, &filter);
@@ -81,7 +81,7 @@ pid_t find_process_by_name(char *process_name)
     }
     free(proc);
     if (close_process_iterator(&it) != 0)
-        exit(1);
+        exit(EXIT_FAILURE);
 
     return (pid > 0) ? find_process_by_pid(pid) : 0;
 }
@@ -92,7 +92,7 @@ int init_process_group(struct process_group *pgroup, pid_t target_pid, int inclu
     pgroup->proctable = (struct process_table *)malloc(sizeof(struct process_table));
     if (pgroup->proctable == NULL)
     {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     process_table_init(pgroup->proctable, 2048);
     pgroup->target_pid = target_pid;
@@ -100,12 +100,12 @@ int init_process_group(struct process_group *pgroup, pid_t target_pid, int inclu
     pgroup->proclist = (struct list *)malloc(sizeof(struct list));
     if (pgroup->proclist == NULL)
     {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     init_list(pgroup->proclist, sizeof(pid_t));
     if (get_time(&pgroup->last_update))
     {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     update_process_group(pgroup);
     return 0;
@@ -135,7 +135,7 @@ static struct process *process_dup(const struct process *proc)
     struct process *p = (struct process *)malloc(sizeof(struct process));
     if (p == NULL)
     {
-        exit(-1);
+        exit(EXIT_FAILURE);
     }
     return (struct process *)memcpy(p, proc, sizeof(struct process));
 }
@@ -153,12 +153,12 @@ void update_process_group(struct process_group *pgroup)
     double dt;
     if (get_time(&now))
     {
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     tmp_process = (struct process *)malloc(sizeof(struct process));
     if (tmp_process == NULL)
     {
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     /* time elapsed from previous sample (in ms) */
     dt = timediff_in_ms(&now, &pgroup->last_update);

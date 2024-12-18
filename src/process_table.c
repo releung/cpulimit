@@ -13,7 +13,7 @@ void process_table_init(struct process_table *pt, int hashsize)
     pt->table = (struct list **)calloc((size_t)pt->hashsize, sizeof(struct list *));
     if (pt->table == NULL)
     {
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -38,7 +38,7 @@ struct process *process_table_find_pid(const struct process_table *pt, pid_t pid
     p = (struct process *)malloc(sizeof(struct process));
     if (p == NULL)
     {
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     p->pid = pid;
     res = process_table_find(pt, p);
@@ -54,7 +54,7 @@ void process_table_add(struct process_table *pt, struct process *p)
         pt->table[idx] = (struct list *)malloc(sizeof(struct list));
         if (pt->table[idx] == NULL)
         {
-            exit(-1);
+            exit(EXIT_FAILURE);
         }
         init_list(pt->table[idx], sizeof(pid_t));
     }
@@ -85,7 +85,7 @@ int process_table_del_pid(struct process_table *pt, pid_t pid)
     p = (struct process *)malloc(sizeof(struct process));
     if (p == NULL)
     {
-        exit(1);
+        exit(EXIT_FAILURE);
     }
     p->pid = pid;
     ret = process_table_del(pt, p);

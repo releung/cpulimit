@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
         if ((ret = pthread_create(&thread, NULL, &loop, NULL)) != 0)
         {
             printf("pthread_create() failed. Error code %d\n", ret);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
     loop(NULL);

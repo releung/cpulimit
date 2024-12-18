@@ -55,7 +55,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     if (sysctl(mib, 4, NULL, &len, NULL, 0) < 0)
     {
         fprintf(stderr, "Failed to get process size: %s\n", strerror(errno));
-        exit(1); /* Exit on error */
+        exit(EXIT_FAILURE); /* Exit on error */
     }
 
     /*
@@ -70,7 +70,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     if (procs == NULL)
     {
         fprintf(stderr, "Memory allocation failed for process information: %s\n", strerror(errno));
-        exit(1); /* Exit on error */
+        exit(EXIT_FAILURE); /* Exit on error */
     }
 
     /* Get process information */
@@ -78,7 +78,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     {
         free(procs);
         fprintf(stderr, "Failed to get process information: %s\n", strerror(errno));
-        exit(1); /* Exit on error */
+        exit(EXIT_FAILURE); /* Exit on error */
     }
 
     /* Calculate the number of processes */
@@ -88,7 +88,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     {
         free(procs);
         fprintf(stderr, "Memory allocation failed for PID list: %s\n", strerror(errno));
-        exit(1); /* Exit on error */
+        exit(EXIT_FAILURE); /* Exit on error */
     }
 
     /* Fill the PID array */

@@ -372,7 +372,7 @@ int main(int argc, char *argv[])
     if (atexit(quit_handler) != 0)
     {
         fprintf(stderr, "Failed to register quit_handler\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     /* Extract the program name and store it in program_base_name */
@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
         {
             fprintf(stderr, "%s: option '%c' requires an argument.\n",
                     argv[0], next_option);
-            print_usage_and_exit(stderr, 1);
+            print_usage_and_exit(stderr, EXIT_FAILURE);
         }
 
         switch (next_option)
@@ -426,11 +426,11 @@ int main(int argc, char *argv[])
             break;
         case 'h':
             /* Print usage information and exit */
-            print_usage_and_exit(stdout, 0);
+            print_usage_and_exit(stdout, EXIT_SUCCESS);
             break;
         case '?':
             /* Print usage information on invalid option */
-            print_usage_and_exit(stderr, 1);
+            print_usage_and_exit(stderr, EXIT_FAILURE);
             break;
         case -1:
             /* No more options to process */
@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
     if (pid_ok && (pid <= 1 || pid >= get_pid_max()))
     {
         fprintf(stderr, "Error: Invalid value for argument PID\n");
-        print_usage_and_exit(stderr, 1);
+        print_usage_and_exit(stderr, EXIT_FAILURE);
     }
     if (pid != 0)
     {
@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
     if (!limit_ok)
     {
         fprintf(stderr, "Error: You must specify a cpu limit percentage\n");
-        print_usage_and_exit(stderr, 1);
+        print_usage_and_exit(stderr, EXIT_FAILURE);
     }
 
     /* Calculate the CPU limit as a fraction */
@@ -464,7 +464,7 @@ int main(int argc, char *argv[])
     if (limit < 0 || limit > NCPU)
     {
         fprintf(stderr, "Error: limit must be in the range 0-%d00\n", NCPU);
-        print_usage_and_exit(stderr, 1);
+        print_usage_and_exit(stderr, EXIT_FAILURE);
     }
 
     /* Determine if a command was provided */
@@ -474,7 +474,7 @@ int main(int argc, char *argv[])
     if (exe_ok + pid_ok + command_mode != 1)
     {
         fprintf(stderr, "Error: You must specify exactly one target process by name, pid, or command line\n");
-        print_usage_and_exit(stderr, 1);
+        print_usage_and_exit(stderr, EXIT_FAILURE);
     }
 
     /* Set up signal handlers for SIGINT and SIGTERM */
@@ -498,7 +498,7 @@ int main(int argc, char *argv[])
         /* Command line arguments */
         char **cmd_args = (char **)malloc((size_t)(argc - optind + 1) * sizeof(char *));
         if (cmd_args == NULL)
-            exit(2);
+            exit(EXIT_FAILURE);
 
         /* Prepare command arguments */
         for (i = 0; i < argc - optind; i++)
@@ -565,7 +565,7 @@ int main(int argc, char *argv[])
                 if (verbose)
                     printf("Limiting process %ld\n", (long)child);
                 limit_process(child, limit, include_children);
-                exit(0);
+                exit(EXIT_SUCCESS);
             }
         }
     }
@@ -608,7 +608,7 @@ int main(int argc, char *argv[])
             {
                 printf("Target process %ld is cpulimit itself! Aborting because it makes no sense\n",
                        (long)ret);
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             printf("Process %ld found\n", (long)pid);
             limit_process(pid, limit, include_children);
