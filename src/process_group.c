@@ -23,6 +23,7 @@
 #define _GNU_SOURCE
 #endif
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -63,7 +64,11 @@ pid_t find_process_by_name(char *process_name)
     const char *process_basename = basename(process_name);
     proc = (struct process *)malloc(sizeof(struct process));
     if (proc == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed for the process\n");
         exit(EXIT_FAILURE);
+    }
+
     filter.pid = 0;
     filter.include_children = 0;
     init_process_iterator(&it, &filter);
@@ -92,6 +97,7 @@ int init_process_group(struct process_group *pgroup, pid_t target_pid, int inclu
     pgroup->proctable = (struct process_table *)malloc(sizeof(struct process_table));
     if (pgroup->proctable == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for the process table\n");
         exit(EXIT_FAILURE);
     }
     process_table_init(pgroup->proctable, 2048);
@@ -100,6 +106,7 @@ int init_process_group(struct process_group *pgroup, pid_t target_pid, int inclu
     pgroup->proclist = (struct list *)malloc(sizeof(struct list));
     if (pgroup->proclist == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for the process list\n");
         exit(EXIT_FAILURE);
     }
     init_list(pgroup->proclist, sizeof(pid_t));
@@ -135,6 +142,7 @@ static struct process *process_dup(const struct process *proc)
     struct process *p = (struct process *)malloc(sizeof(struct process));
     if (p == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for duplicated process\n");
         exit(EXIT_FAILURE);
     }
     return (struct process *)memcpy(p, proc, sizeof(struct process));
@@ -158,6 +166,7 @@ void update_process_group(struct process_group *pgroup)
     tmp_process = (struct process *)malloc(sizeof(struct process));
     if (tmp_process == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for tmp_process\n");
         exit(EXIT_FAILURE);
     }
     /* time elapsed from previous sample (in ms) */

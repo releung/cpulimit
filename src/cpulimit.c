@@ -269,7 +269,12 @@ static void limit_process(pid_t pid, double limit, int include_children)
             {
                 /* If the process is dead, remove it from the group */
                 if (verbose)
-                    fprintf(stderr, "SIGCONT failed. Process %ld dead!\n", (long)proc->pid);
+                {
+                    char errbuf[100];
+                    sprintf(errbuf, "kill failed to send SIGCONT to process %ld",
+                            (long)proc->pid);
+                    perror(errbuf);
+                }
                 delete_node(pgroup.proclist, node);
                 remove_process(&pgroup, proc->pid);
             }
@@ -291,7 +296,12 @@ static void limit_process(pid_t pid, double limit, int include_children)
                 {
                     /* If the process is dead, remove it from the group */
                     if (verbose)
-                        fprintf(stderr, "SIGSTOP failed. Process %ld dead!\n", (long)proc->pid);
+                    {
+                        char errbuf[100];
+                        sprintf(errbuf, "kill failed to send SIGSTOP to process %ld",
+                                (long)proc->pid);
+                        perror(errbuf);
+                    }
                     delete_node(pgroup.proclist, node);
                     remove_process(&pgroup, proc->pid);
                 }
@@ -498,7 +508,10 @@ int main(int argc, char *argv[])
         /* Command line arguments */
         char **cmd_args = (char **)malloc((size_t)(argc - optind + 1) * sizeof(char *));
         if (cmd_args == NULL)
+        {
+            fprintf(stderr, "Memory allocation failed for cmd_args\n");
             exit(EXIT_FAILURE);
+        }
 
         /* Prepare command arguments */
         for (i = 0; i < argc - optind; i++)

@@ -54,7 +54,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     /* Get the size of all process information */
     if (sysctl(mib, 4, NULL, &len, NULL, 0) < 0)
     {
-        fprintf(stderr, "Failed to get process size: %s\n", strerror(errno));
+        perror("Failed to get process information buffer size");
         exit(EXIT_FAILURE); /* Exit on error */
     }
 
@@ -69,7 +69,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     procs = (struct kinfo_proc *)malloc(len);
     if (procs == NULL)
     {
-        fprintf(stderr, "Memory allocation failed for process information: %s\n", strerror(errno));
+        fprintf(stderr, "Memory allocation failed for process information buffer\n");
         exit(EXIT_FAILURE); /* Exit on error */
     }
 
@@ -77,7 +77,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     if (sysctl(mib, 4, procs, &len, NULL, 0) < 0)
     {
         free(procs);
-        fprintf(stderr, "Failed to get process information: %s\n", strerror(errno));
+        perror("Failed to get process information");
         exit(EXIT_FAILURE); /* Exit on error */
     }
 
@@ -87,7 +87,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     if (it->pidlist == NULL)
     {
         free(procs);
-        fprintf(stderr, "Memory allocation failed for PID list: %s\n", strerror(errno));
+        fprintf(stderr, "Memory allocation failed for PID list\n");
         exit(EXIT_FAILURE); /* Exit on error */
     }
 
@@ -118,13 +118,14 @@ static int get_process_pti(pid_t pid, struct proc_taskallinfo *ti)
     {
         if (errno != EPERM && errno != ESRCH)
         {
-            fprintf(stderr, "proc_pidinfo: %s\n", strerror(errno));
+            perror("proc_pidinfo");
         }
         return -1;
     }
     else if (bytes < (int)sizeof(*ti))
     {
-        fprintf(stderr, "proc_pidinfo: too few bytes; expected %lu, got %d\n", (unsigned long)sizeof(*ti), bytes);
+        fprintf(stderr, "proc_pidinfo: too few bytes; expected %lu, got %d\n",
+                (unsigned long)sizeof(*ti), bytes);
         return -1;
     }
     return 0;

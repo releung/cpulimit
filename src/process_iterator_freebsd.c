@@ -50,7 +50,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
     if (errbuf == NULL)
     {
-        fprintf(stderr, "malloc: %s\n", strerror(errno));
+        fprintf(stderr, "Memory allocation failed for the error buffer\n");
         exit(EXIT_FAILURE);
     }
     it->i = 0;
@@ -71,7 +71,11 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
     }
     it->procs = (struct kinfo_proc *)malloc(sizeof(struct kinfo_proc) * (size_t)it->count);
     if (it->procs == NULL)
+    {
+        fprintf(stderr, "Memory allocation failed for the process list\n");
         exit(EXIT_FAILURE);
+    }
+
     memcpy(it->procs, procs, sizeof(struct kinfo_proc) * (size_t)it->count);
     it->filter = filter;
     return 0;
@@ -115,6 +119,7 @@ pid_t getppid_of(pid_t pid)
     char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
     if (errbuf == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for the error buffer\n");
         exit(EXIT_FAILURE);
     }
     kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
@@ -148,6 +153,7 @@ int is_child_of(pid_t child_pid, pid_t parent_pid)
     char *errbuf = (char *)malloc(sizeof(char) * _POSIX2_LINE_MAX);
     if (errbuf == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for the error buffer\n");
         exit(EXIT_FAILURE);
     }
     kd = kvm_openfiles(NULL, _PATH_DEVNULL, NULL, O_RDONLY, errbuf);
@@ -215,7 +221,7 @@ int close_process_iterator(struct process_iterator *it)
     it->procs = NULL;
     if (kvm_close(it->kd) == -1)
     {
-        fprintf(stderr, "kvm_close: %s\n", strerror(errno));
+        perror("kvm_close");
         return -1;
     }
     return 0;

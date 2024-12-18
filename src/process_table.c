@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <stdio.h>
 #include "process_table.h"
 
 void process_table_init(struct process_table *pt, int hashsize)
@@ -13,6 +14,7 @@ void process_table_init(struct process_table *pt, int hashsize)
     pt->table = (struct list **)calloc((size_t)pt->hashsize, sizeof(struct list *));
     if (pt->table == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for the process table\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -38,6 +40,7 @@ struct process *process_table_find_pid(const struct process_table *pt, pid_t pid
     p = (struct process *)malloc(sizeof(struct process));
     if (p == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for the process\n");
         exit(EXIT_FAILURE);
     }
     p->pid = pid;
@@ -54,6 +57,7 @@ void process_table_add(struct process_table *pt, struct process *p)
         pt->table[idx] = (struct list *)malloc(sizeof(struct list));
         if (pt->table[idx] == NULL)
         {
+            fprintf(stderr, "Memory allocation failed for the process list\n");
             exit(EXIT_FAILURE);
         }
         init_list(pt->table[idx], sizeof(pid_t));
@@ -85,6 +89,7 @@ int process_table_del_pid(struct process_table *pt, pid_t pid)
     p = (struct process *)malloc(sizeof(struct process));
     if (p == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for the process\n");
         exit(EXIT_FAILURE);
     }
     p->pid = pid;

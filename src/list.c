@@ -25,7 +25,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-
+#include <stdio.h>
 #include "list.h"
 
 #define safe_free(p)     \
@@ -50,6 +50,7 @@ struct list_node *add_elem(struct list *l, void *elem)
     struct list_node *newnode = (struct list_node *)malloc(sizeof(struct list_node));
     if (newnode == NULL)
     {
+        fprintf(stderr, "Memory allocation failed for the new list node\n");
         exit(EXIT_FAILURE);
     }
     newnode->data = elem;
