@@ -501,29 +501,14 @@ int main(int argc, char *argv[])
     /* Handle command mode (run a command and limit its CPU usage) */
     if (command_mode)
     {
-        int i;
         pid_t child;
-        /* Executable file */
-        const char *cmd = argv[optind];
-        /* Command line arguments */
-        char **cmd_args = (char **)malloc((size_t)(argc - optind + 1) * sizeof(char *));
-        if (cmd_args == NULL)
-        {
-            fprintf(stderr, "Memory allocation failed for cmd_args\n");
-            exit(EXIT_FAILURE);
-        }
-
-        /* Prepare command arguments */
-        for (i = 0; i < argc - optind; i++)
-        {
-            cmd_args[i] = argv[i + optind];
-        }
-        cmd_args[i] = NULL;
+        char *const *cmd_args = argv + optind;
 
         /* If verbose, print the command being executed */
         if (verbose)
         {
-            printf("Running command: '%s", cmd);
+            int i;
+            printf("Running command: '%s", cmd_args[0]);
             for (i = 1; i < argc - optind; i++)
             {
                 printf(" %s", cmd_args[i]);
@@ -540,16 +525,14 @@ int main(int argc, char *argv[])
         else if (child == 0)
         {
             /* Execute the command in the child process */
-            int ret = execvp(cmd, cmd_args);
+            int ret = execvp(cmd_args[0], cmd_args);
             perror("Error"); /* Display error if execvp fails */
-            free(cmd_args);
             exit(ret);
         }
         else
         {
             /* Parent process forks another limiter process to control CPU usage */
             pid_t limiter;
-            free(cmd_args);
             limiter = fork();
             if (limiter < 0)
             {
