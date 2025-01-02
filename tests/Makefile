@@ -10,7 +10,8 @@ override CFLAGS := $(filter-out -std=% -ansi -W%, $(CFLAGS)) \
                    -Wold-style-definition \
                    -Wmissing-prototypes \
                    -Wstrict-prototypes \
-                   -Werror
+                   -Werror \
+				   -lpthread
 
 # If CHECK is set to 1, add stricter flags
 ifeq ($(CHECK), 1)
